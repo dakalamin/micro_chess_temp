@@ -8,8 +8,6 @@
 #include "mask.h"
 #include "piece.h"
 
-#include "test.h"
-
 void setup()
 {
     Serial.begin(SERIAL_SPEED);
