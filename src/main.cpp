@@ -11,31 +11,34 @@
 void setup()
 {
     Serial.begin(SERIAL_SPEED);
+    while (!Serial) { }
 
-    Game::reset(); 
-    Serial.println(F("CELLNAMES"));
     Board::print_cellnames();
-    Serial.println(F("STARTING POSITION"));
-    Board::print_pieces(Board::MAJOR);
-    Serial.println(F("STARTING FRONTLINE"));
-    Mask::print(Mask::FRONTLINE);
+    Board::print_cellcoords();
 
-    coord_mch piece = Board::SIZE-1 + Piece::U + Piece::L * 4;
-    Game::analyze_input(piece);
-    Serial.println(F("\nPOSSIBLE STEPS"));
-    Target::print();
-
-    Serial.println(F("\n--- MAKING THE MOVE ---\n"));
-    Game::make_move(piece, piece + Piece::U * 2);
-    Serial.println(F("POSITION DEPTH 1"));
-    Board::print_pieces(Board::MAJOR);
-    Serial.println(F("FRONTLINE DEPTH 1"));
-    Mask::print(Mask::FRONTLINE);
-
-    piece = Piece::R;
-    Game::analyze_input(piece);
-    Serial.println(F("\nPOSSIBLE STEPS DEPTH 1"));
-    Target::print();
+    Game::reset();
 }
 
-void loop() { }
+void loop()
+{
+    Game::preanalyze();
+
+    Board::print(Board::MAJOR);
+    Serial.println();
+
+    if (Game::has_ended())
+    {
+        if (Game::current_state == Game::State::DRAW)
+            Serial.println(F("That's a DRAW, nobody wins"));
+        else
+        {
+            Piece::print_color(Game::current_side);
+            Serial.println(F(" has won, congratulations"));
+        }
+
+        Serial.println(F("\n --- RESTARTING THE GAME --- \n"));
+        return Game::reset();
+    }
+
+    Game::print_side();
+}
