@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "game.h"
 #include "board.h"
 
@@ -8,6 +9,23 @@ namespace Game
 
     Piece::Move last_move;
     coord_mch   last_cell;
+
+    void print_side()
+    {
+        Piece::print_color(current_side);
+        Serial.println(F(" side is playing now"));
+    }
+
+    void print_state()
+    {
+        switch (current_state)
+        {
+            case State::CHECKMATE:
+                Serial.print(F("CHECKMATE")); break;
+            case State::STALEMATE:
+                Serial.print(F("STALEMATE")); break;
+        }
+    }
 
     void reset(Piece::Color start_side)  // start_side=START_SIDE
     {
@@ -44,7 +62,7 @@ namespace Game
 
     void make_move(coord_mch cell_from, coord_mch cell_to, Piece::Move move, Piece::Type prom_type)
     {
-        switch_side();
+        switch_sides();
         last_cell = cell_to;
         last_move = move;
 

@@ -86,6 +86,11 @@ namespace Piece
     inline Shift get_shift(pce_mch piece)
         { return (Shift)get_prop(piece, Prop::SHIFT); }
 
+    inline bool _is_white(Color color)
+        { return color == Color::WHITE; }
+    inline Color opposite_color(Color color)
+        { return  _is_white(color) ? Color::BLACK : Color::WHITE; }
+
     inline void king_hurt(Board::Index board_index, coord_mch cell)
         { Mask::append(cell, (Mask::king_is_hurt = (board_index == Board::MINOR)) ? Mask::MENACES : Mask::REGICIDES); }
 

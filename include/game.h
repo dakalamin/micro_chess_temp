@@ -12,11 +12,14 @@ namespace Game
 
     enum class State : uint_mch
     {
-        NEUTRAL,
-        CHECK,      // ШАХ
-        CHECKMATE,  // МАТ
-        STALEMATE,  // ПАТ
-        DRAW        // НИЧЬЯ
+        _END      = DFLT_MASK,
+
+        NEUTRAL   = 0 * _END,
+        CHECK     = 1 | NEUTRAL,  // ШАХ
+
+        CHECKMATE = 2 | _END,     // МАТ
+        STALEMATE = 3 | _END,     // ПАТ
+        DRAW      = 4 | _END      // НИЧЬЯ
     };
     extern State current_state;
 
@@ -24,11 +27,12 @@ namespace Game
     extern coord_mch   last_cell;
 
 
-    inline Piece::Color opp_side(Piece::Color side)
-        { return (side == Piece::Color::WHITE) ? Piece::Color::BLACK : Piece::Color::WHITE; }
-    inline void switch_side()
-        { current_side = opp_side(current_side); }
+    inline bool has_ended()
+        { return (uint_mch)current_state & (uint_mch)State::_END; }
+    inline void switch_sides()
+        { current_side = Piece::opposite_color(current_side); }
 
+    void print_side();
     void reset(Piece::Color start_side=START_SIDE);
 
     void preanalyze();
