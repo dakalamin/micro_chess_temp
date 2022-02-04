@@ -5,7 +5,7 @@
 
 namespace Mask
 {
-    brd_mch arr[Index::arr_size];
+    mask_mch arr[Index::arr_size];
     bool king_is_hurt;
     
 
@@ -23,5 +23,6 @@ namespace Mask
             }
             Serial.println();
         }
+        Serial.println();
     }
 }

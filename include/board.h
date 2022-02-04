@@ -13,7 +13,7 @@ namespace Board
         MAJOR,
         MINOR,
 
-        arr_size,
+        arr_size
     };
     extern pce_mch arr[Index::arr_size][SIZE];
     

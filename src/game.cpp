@@ -12,7 +12,7 @@ namespace Game
 
     void print_side()
     {
-        Piece::print_color(current_side);
+        //Piece::print_color(current_side);
         Serial.println(F(" side is playing now"));
     }
 

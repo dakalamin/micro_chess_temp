@@ -9,9 +9,9 @@ namespace Target
     bool is_empty()
     {
         for (coord_mch cell = 0; cell < Board::SIZE; cell++)
-            if (Piece::move_is_valid(get(cell))) return true;
+            if (Piece::move_is_valid(get(cell))) return false;
 
-        return false;
+        return true;
     }
 
     void reset()

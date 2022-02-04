@@ -12,7 +12,7 @@ namespace Game
 
     enum class State : uint_mch
     {
-        _END      = DFLT_MASK,
+        _END      = 0b10000000,
 
         NEUTRAL   = 0 * _END,
         CHECK     = 1 | NEUTRAL,  // ШАХ
@@ -32,6 +32,7 @@ namespace Game
     inline void switch_sides()
         { current_side = Piece::opposite_color(current_side); }
 
+    void print_state();
     void print_side();
     void reset(Piece::Color start_side=START_SIDE);
 

@@ -74,7 +74,6 @@ namespace Board
         get(board_index)[cell] = (pce_mch)Piece::Type::EMPTY;
     }
 
-
     template <typename Func>
     void print(Func function)
     {
@@ -97,7 +96,7 @@ namespace Board
         using namespace Piece;
         print([board_index](coord_mch cell, char& a, char& b)
         {
-            pce_mch piece = Board::get(board_index)[cell];
+            pce_mch piece = get(board_index)[cell];
             a = get_char(piece);
 
             if (get_type(piece) == Type::EMPTY)

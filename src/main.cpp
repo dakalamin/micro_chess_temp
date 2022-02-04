@@ -12,33 +12,20 @@ void setup()
 {
     Serial.begin(SERIAL_SPEED);
     while (!Serial) { }
-
-    Board::print_cellnames();
-    Board::print_cellcoords();
+    Serial.println();
 
     Game::reset();
+    Board::fill(Board::MAJOR, Board::BRD_2);
+    Game::preanalyze();
+
+    Board::print_cellnames();
+    Board::print_pieces(Board::MAJOR);
+
+    Mask::print(Mask::FRONTLINE);
+
+    Game::analyze_input(34);
+    Target::print();
 }
 
 void loop()
-{
-    Game::preanalyze();
-
-    Board::print(Board::MAJOR);
-    Serial.println();
-
-    if (Game::has_ended())
-    {
-        if (Game::current_state == Game::State::DRAW)
-            Serial.println(F("That's a DRAW, nobody wins"));
-        else
-        {
-            Piece::print_color(Game::current_side);
-            Serial.println(F(" has won, congratulations"));
-        }
-
-        Serial.println(F("\n --- RESTARTING THE GAME --- \n"));
-        return Game::reset();
-    }
-
-    Game::print_side();
-}
+{ }

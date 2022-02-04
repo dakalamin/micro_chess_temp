@@ -30,7 +30,7 @@ namespace Piece
     void _make_move(Board::Index board_index, coord_mch cell_from, coord_mch cell_to, Move move, Type prom_type)
     {
         assert_val_mch((cell_from >= 0) && (cell_from < Board::SIZE), cell_from, DEC);
-        assert_val_mch(  (cell_to >= 0) && (cell_to < Board::SIZE),   (uint_mch)move,   DEC);
+        assert_val_mch(  (cell_to >= 0) && (cell_to < Board::SIZE),   (uint_mch)move, DEC);
 
         // pop piece from one place and write it to a new onee
         // with Piece::Shift parameter redefined as Shift::TRUE
@@ -41,8 +41,8 @@ namespace Piece
             case Move::STEP:
             case Move::DOUBLEPAWN:
             case Move::CAPTURE:
-                board[cell_to]   = (board[cell_from] & (pce_mch)Prop::TC) | (pce_mch)Shift::TRUE;
-                board[cell_from] = (pce_mch)Type::EMPTY;
+                board[cell_to] = (board[cell_from] & (pce_mch)Prop::TC) | (pce_mch)Shift::TRUE;
+                Board::empty(board_index, cell_from);
                 return;
 
             case Move::CASTLING:
@@ -52,7 +52,7 @@ namespace Piece
 
             case Move::EN_PASSANT:
                 _make_move(board_index, cell_from, cell_to, Move::STEP);
-                board[get_enpassant(cell_to)] = (pce_mch)Type::EMPTY;
+                Board::empty(board_index, get_enpassant(cell_to));
                 return;
 
             case Move::PROMOTION:
@@ -64,8 +64,8 @@ namespace Piece
                     assert_val_mch(promtype_is_valid, (pce_mch)prom_type, DEC);
                 #endif
 
-                board[cell_to]   = (pce_mch)prom_type | (pce_mch)get_color(board[cell_from]) | (pce_mch)Shift::TRUE;
-                board[cell_from] = (pce_mch)Type::EMPTY;
+                board[cell_to] = (pce_mch)prom_type | (pce_mch)get_color(board[cell_from]) | (pce_mch)Shift::TRUE;
+                Board::empty(board_index, cell_from);
                 return;
 
             default:
@@ -130,8 +130,6 @@ namespace Piece
             case Type::KING:
                 a = 0; b = 8;
                 break;
-            default:
-                break;
         }
 
 
@@ -148,7 +146,7 @@ namespace Piece
             Dir pawn_rays[] = { (Dir)(UR*sign), (Dir)(UL*sign) };
             for (Dir ray : pawn_rays)
             {
-                new_cell  = cell + ray;
+                new_cell = cell + ray;
                 if (!Board::is_within(cell, new_cell)) continue;
 
                 new_piece = board[new_cell];
@@ -178,7 +176,8 @@ namespace Piece
             Dir ray = (Dir)(U*sign);
             
             new_cell = cell + ray;
-            if (!(Board::is_within(cell, new_cell) && get_type(board[new_cell]) == Type::EMPTY)) return;
+            if (!(Board::is_within(cell, new_cell) && get_type(board[new_cell]) == Type::EMPTY))
+                return;
 
             Board::reset(Board::MINOR);
             _full_validate(cell, new_cell, Move::STEP);
@@ -188,7 +187,9 @@ namespace Piece
                 return;
 
             Board::reset(Board::MINOR);
-            _full_validate(cell, new_cell, Move::STEP);
+            _full_validate(cell, new_cell, Move::DOUBLEPAWN);
+
+            return;
         }
 
         else if (get_prop(piece, Prop::TCS) == ((pce_mch)Type::KING | (pce_mch)Game::current_side | (pce_mch)Shift::FALSE))
@@ -216,10 +217,12 @@ namespace Piece
         // loop over all different directions suitable for the particular piece type
         for (int_mch ray_index = a; ray_index < b; ray_index++)
         {
+            Dir ray = RAYS[ray_index];
             new_cell = cell;
-            while (Board::is_within(new_cell, new_cell+RAYS[ray_index]))
+
+            while (Board::is_within(new_cell, new_cell+ray))
             {
-                new_cell += RAYS[ray_index];
+                new_cell += ray;
                 new_piece = board[new_cell];
                 new_type  = get_type(new_piece);
 
@@ -237,7 +240,7 @@ namespace Piece
 
                 // no reason to check more than one step in any direction
                 // if the piece is of 'not-sliding' type (e.g. Knight)
-                if (!(is_sliding && new_type == Type::EMPTY))
+                if (!(is_sliding && new_is_empty))
                     break;
             }
         }
