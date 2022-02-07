@@ -15,36 +15,33 @@ namespace Board
 
     void fill(Index board_index, const char contents[])
     {
-        using namespace Piece;
+        assert_val_mch(sizeof_array_mch(contents) != SIZE+1, contents);
+
         for (coord_mch cell = 0; cell < SIZE; cell++)
         {
             char new_piece = contents[cell];
 
             #ifdef DEBUG
-                int_mch brd_size;
-                for (brd_size = 0; contents[brd_size] != '\0'; brd_size++) { }
-                assert_val_mch(brd_size == Board::SIZE, brd_size);
+                bool piece_is_valid = (new_piece == Piece::EMPTY_CHAR);
+                for (char valid_char : Piece::VALID_CHARS)
+                    piece_is_valid += ((new_piece | (char)Piece::Prop::COLOR) == valid_char);
 
-                bool valid = (new_piece == EMPTY_CHAR);
-                for (int_mch i = 0; !valid && (i < NUM_TYPES); i++)
-                    valid = ((new_piece | (char)Prop::COLOR) == VALID_CHARS[i]);
-
-                assert_val_mch(valid, new_piece);
+                assert_val_mch(piece_is_valid, contents);
             #endif
 
-            pce_mch piece = (pce_mch)Type::EMPTY;;
-            Shift shift   = Shift::FALSE;
+            pce_mch      piece = (pce_mch)Piece::Type::EMPTY;;
+            Piece::Shift shift = Piece::Shift::FALSE;
 
-            if (new_piece != EMPTY_CHAR)
+            if (new_piece != Piece::EMPTY_CHAR)
             {
-                piece  = (pce_mch)get_type((pce_mch)new_piece);
-                piece |= ((pce_mch)get_color((pce_mch)new_piece) ^ (pce_mch)Piece::Color::WHITE);
+                piece  = (pce_mch)Piece::_get_type((pce_mch)new_piece);
+                piece |= ((pce_mch)Piece::_get_color((pce_mch)new_piece) ^ (pce_mch)Piece::Color::WHITE);
 
-                if (!(contents == BRD_DEFAULT || new_piece == BRD_DEFAULT[cell]))
-                    shift = Shift::TRUE;
+                if (new_piece != BRD_DEFAULT[cell])
+                    shift = Piece::Shift::TRUE;
             }
 
-            get(board_index)[cell] = piece | (pce_mch)shift;
+            set(board_index, cell, piece|(pce_mch)shift);
         }
     }
 
@@ -58,24 +55,21 @@ namespace Board
 
             case MINOR:
                 for (coord_mch cell = 0; cell < SIZE; cell++)
-                    get(MINOR)[cell] = get(MAJOR)[cell];
+                    set(MINOR, cell, get(MAJOR, cell));
 
                 Mask::king_is_hurt = false;
-                return;
-                
-            default:
-                assert_val_mch(0, board_index, DEC);
                 return;
         }
     }
 
     void empty(Index board_index, coord_mch cell)
     {
-        get(board_index)[cell] = (pce_mch)Piece::Type::EMPTY;
+        set(board_index, cell, (pce_mch)Piece::Type::EMPTY);
     }
 
+
     template <typename Func>
-    void print(Func function)
+    void _print(Func function)
     {
         for (coord_mch row = 0; row < SIDE; row++)
         {
@@ -93,24 +87,23 @@ namespace Board
 
     void print_pieces(Index board_index)
     {
-        using namespace Piece;
-        print([board_index](coord_mch cell, char& a, char& b)
+        _print([board_index](coord_mch cell, char& piece_char, char& piece_shift)
         {
-            pce_mch piece = get(board_index)[cell];
-            a = get_char(piece);
+            pce_mch piece = get(board_index, cell);
+            piece_char    = Piece::get_char(piece);
 
-            if (get_type(piece) == Type::EMPTY)
-                b = ' ';
-            else if (get_shift(piece) == Shift::TRUE)
-                b = '+';
+            if (Piece::_get_type(piece) == Piece::Type::EMPTY)
+                piece_shift = ' ';
+            else if (Piece::_get_shift(piece) == Piece::Shift::TRUE)
+                piece_shift = '+';
             else
-                b = '-';
+                piece_shift = '-';
         });
     }
 
     void print_cellnames()
     {
-        print([](coord_mch cell, char& rank, char& file)
+        _print([](coord_mch cell, char& rank, char& file)
         {
             rank = '8' - cell / SIDE;
             file = 'a' + cell % SIDE;

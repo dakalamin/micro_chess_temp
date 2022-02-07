@@ -6,7 +6,6 @@
 #include "board.h"
 #include "game.h"
 #include "mask.h"
-#include "piece.h"
 
 void setup()
 {
@@ -15,8 +14,8 @@ void setup()
     Serial.println();
 
     Game::reset();
-    Board::fill(Board::MAJOR, Board::BRD_2);
-    Game::preanalyze();
+    //Board::fill(Board::MAJOR, Board::BRD_2);
+    //Game::preanalyze();
 
     Board::print_cellnames();
     Board::print_pieces(Board::MAJOR);

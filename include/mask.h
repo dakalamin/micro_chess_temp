@@ -1,6 +1,5 @@
 #pragma once
 #include "core/utils.h"
-#include "board.h"
 
 namespace Mask
 {
@@ -22,7 +21,7 @@ namespace Mask
     inline bool check(coord_mch cell, Index mask_index)
         { return (get(mask_index) >> cell) & 1; };
 
-    inline void append(coord_mch cell, Index mask_index)
+    inline void set(coord_mch cell, Index mask_index)
         { get(mask_index) |= ((mask_mch)1 << cell); };
     inline void reset(Index mask_index)
         { get(mask_index) = 0; }

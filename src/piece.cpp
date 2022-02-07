@@ -1,58 +1,47 @@
 #include "core/micro_assert.h"
 #include "piece.h"
 
-#include "board.h"
+#include "target.h"
 #include "game.h"
-#include "mask.h"
 
 namespace Piece
 {
     char get_char(pce_mch piece)
     {
         // 0b01CTTTTT - where C is Color, T is Type
-        Type type = get_type(piece);
+        Type type = _get_type(piece);
 
         return (type == Type::EMPTY) ?
-            EMPTY_CHAR : ((pce_mch)type | ((pce_mch)get_color(piece) ^ (pce_mch)Color::WHITE) | 0b01000000);
-    }
-
-    coord_mch get_enpassant(coord_mch cell)
-    {
-        return cell + D*((Game::current_side == Game::START_SIDE) ? 1 : -1);
-    }
-
-    coord_mch get_castling(Piece::Dir ray)
-    {
-        return (Board::SIDE-1)*(ray == R) + (Board::SIZE-Board::SIDE)*(Game::current_side == Game::START_SIDE);
+            EMPTY_CHAR : ((pce_mch)type | ((pce_mch)_get_color(piece) ^ (pce_mch)Color::WHITE) | 0b01000000);
     }
 
 
-    void _make_move(Board::Index board_index, coord_mch cell_from, coord_mch cell_to, Move move, Type prom_type)
+    void _make_puremove(Board::Index board_index, coord_mch cell_from, coord_mch cell_to, Move move, Type prom_type)
     {
-        assert_val_mch((cell_from >= 0) && (cell_from < Board::SIZE), cell_from, DEC);
-        assert_val_mch(  (cell_to >= 0) && (cell_to < Board::SIZE),   (uint_mch)move, DEC);
+        assert_val_mch(Board::is_within(cell_from), cell_from,      DEC);
+        assert_val_mch(Board::is_within(cell_to),   (uint_mch)move, DEC);
 
-        // pop piece from one place and write it to a new onee
-        // with Piece::Shift parameter redefined as Shift::TRUE
-        pce_mch* board = Board::get(board_index);
+        const pce_mch piece_from = Board::get(board_index, cell_from);
+        const Color   color_from = _get_color(piece_from);
+        const bool    is_white   = _is_white(color_from);
 
         switch (move)
         {
             case Move::STEP:
             case Move::DOUBLEPAWN:
             case Move::CAPTURE:
-                board[cell_to] = (board[cell_from] & (pce_mch)Prop::TC) | (pce_mch)Shift::TRUE;
+                Board::set(board_index, cell_to, (piece_from & (pce_mch)Prop::TC) | (pce_mch)Shift::TRUE);
                 Board::empty(board_index, cell_from);
                 return;
 
             case Move::CASTLING:
-                _make_move(board_index, cell_from, cell_to, Move::STEP);
-                _make_move(board_index, get_castling((cell_from > cell_to) ? R : L), (cell_from + cell_to)/2, Move::STEP);
+                _make_puremove(board_index, cell_from, cell_to, Move::STEP);
+                _make_puremove(board_index, _get_castling((cell_from > cell_to) ? R : L, is_white), (cell_from + cell_to)/2, Move::STEP);
                 return;
 
             case Move::EN_PASSANT:
-                _make_move(board_index, cell_from, cell_to, Move::STEP);
-                Board::empty(board_index, get_enpassant(cell_to));
+                _make_puremove(board_index, cell_from, cell_to, Move::STEP);
+                Board::empty(board_index, _get_enpassant(cell_to, is_white));
                 return;
 
             case Move::PROMOTION:
@@ -64,12 +53,12 @@ namespace Piece
                     assert_val_mch(promtype_is_valid, (pce_mch)prom_type, DEC);
                 #endif
 
-                board[cell_to] = (pce_mch)prom_type | (pce_mch)get_color(board[cell_from]) | (pce_mch)Shift::TRUE;
+                Board::set(board_index, cell_to, (pce_mch)prom_type | (pce_mch)color_from | (pce_mch)Shift::TRUE);
                 Board::empty(board_index, cell_from);
                 return;
 
             default:
-                assert_val_mch(0, (uint_mch)move, DEC);
+                assert_forced_val_mch((uint_mch)move, DEC);
                 return;
         }
     }
@@ -80,27 +69,27 @@ namespace Piece
             Piece::calculate(Board::MINOR, sub_cell);
 
         if (Mask::king_is_hurt)
-            Target::append(new_cell, Move::INVALID);
+            Target::_set(new_cell, Move::INVALID);
         else
         {
-            Target::append(new_cell, move);
-            Mask::append(cell, Mask::FRONTLINE);
+            Target::_set(new_cell, move);
+            Mask::set(cell, Mask::FRONTLINE);
         }
     }
 
     void _full_validate(coord_mch cell, coord_mch new_cell, Move move)
     {
-        _make_move(Board::MINOR, cell, new_cell, move);
+        _make_puremove(Board::MINOR, cell, new_cell, move);
         _validate(cell, new_cell, move);
     }
 
 
     void calculate(Board::Index board_index, coord_mch cell)
     {
-        pce_mch* board = Board::get(board_index);
-        pce_mch  piece = board[cell];
-        Color    color = get_color(piece);
-        Type     type  = get_type(piece);
+        const pce_mch  piece = Board::get(board_index, cell);
+        const Type     type  = _get_type(piece);
+        const Color    color = _get_color(piece);
+        const bool  is_white = _is_white(color);
 
         if (board_index == Board::MAJOR)
         {
@@ -133,33 +122,28 @@ namespace Piece
         }
 
 
-        coord_mch new_cell;
-        pce_mch   new_piece;
-        Type      new_type;
-        Move      move;
-
         if (type == Type::PAWN)
         {
-            int_mch sign = (color == Game::START_SIDE) ? 1 : -1;
-
             // #include <initializer_list> failed (perhaps, AVR compiler doesn't support this), so simply using an array
-            Dir pawn_rays[] = { (Dir)(UR*sign), (Dir)(UL*sign) };
+            const Dir pawn_rays[] = { (is_white) ? UR : DR, (is_white) ? UL : DL };
             for (Dir ray : pawn_rays)
             {
-                new_cell = cell + ray;
+                coord_mch new_cell = cell + ray;
                 if (!Board::is_within(cell, new_cell)) continue;
 
-                new_piece = board[new_cell];
-                new_type  = get_type(new_piece);
-                if (new_type != Type::EMPTY && get_color(new_piece) == color) continue;
+                coord_mch new_piece = Board::get(board_index, new_cell);
+                Type new_type = _get_type(new_piece);
+
+                if (new_type != Type::EMPTY && _get_color(new_piece) == color) continue;
 
                 if (color == Game::current_side)
                 {
                     Board::reset(Board::MINOR);
 
+                    Move move;
                     if (new_type != Type::EMPTY)
                         move = Move::CAPTURE;
-                    else if (Game::last_cell == get_enpassant(new_cell) && Game::last_move == Move::DOUBLEPAWN)
+                    else if (Game::last_cell == _get_enpassant(new_cell, is_white) && Game::last_move == Move::DOUBLEPAWN)
                         move = Move::EN_PASSANT;
                     else continue;
 
@@ -167,23 +151,23 @@ namespace Piece
                     
                 }
                 else if (new_type == Type::KING)
-                    king_hurt(board_index, cell);
+                    _hurt_king(board_index, cell);
             }
 
             if (color != Game::current_side)
                 return;
 
-            Dir ray = (Dir)(U*sign);
-            
-            new_cell = cell + ray;
-            if (!(Board::is_within(cell, new_cell) && get_type(board[new_cell]) == Type::EMPTY))
+            const Dir ray = (is_white) ? U : D;
+            coord_mch new_cell = cell + ray;
+            if (!(Board::is_within(cell, new_cell) && _get_type(Board::get(board_index, new_cell)) == Type::EMPTY)) 
                 return;
 
             Board::reset(Board::MINOR);
             _full_validate(cell, new_cell, Move::STEP);
 
             new_cell += ray;
-            if (!(Board::is_within(cell, new_cell) && get_type(board[new_cell]) == Type::EMPTY && get_shift(cell) == Shift::FALSE))
+            pce_mch new_piece = Board::get(board_index, new_cell);
+            if (!(Board::is_within(cell, new_cell) && _get_type(new_piece) == Type::EMPTY && _get_shift(new_piece) == Shift::FALSE))
                 return;
 
             Board::reset(Board::MINOR);
@@ -192,22 +176,22 @@ namespace Piece
             return;
         }
 
-        else if (get_prop(piece, Prop::TCS) == ((pce_mch)Type::KING | (pce_mch)Game::current_side | (pce_mch)Shift::FALSE))
+        else if (piece == ((pce_mch)Type::KING | (pce_mch)Game::current_side | (pce_mch)Shift::FALSE))
         {
             Dir castling_rays[] = {R, L};
 
             for (Dir ray : castling_rays)
             {
-                coord_mch rook_cell = get_castling(ray);
-                if (get_prop(board[rook_cell], Prop::TCS) != ((pce_mch)Type::ROOK | (pce_mch)Game::current_side | (pce_mch)Shift::FALSE))
+                coord_mch rook_cell = _get_castling(ray, is_white);
+                if (Board::get(board_index, rook_cell) != ((pce_mch)Type::ROOK | (pce_mch)Game::current_side | (pce_mch)Shift::FALSE))
                     continue;
 
-                new_cell = cell + ray;
+                coord_mch new_cell = cell + ray;
 
                 Board::reset(Board::MINOR);
-                for (int_mch counter = 0; new_cell != rook_cell && get_type(board[new_cell]) == Type::EMPTY; counter++, new_cell += ray)
+                for (int_mch counter = 0; new_cell != rook_cell && _get_type(Board::get(board_index, new_cell)) == Type::EMPTY; counter++, new_cell += ray)
                 {
-                    if (counter < 2) Board::get(Board::MINOR)[new_cell] = piece;
+                    if (counter < 2) Board::set(Board::MINOR, new_cell, piece);
                 }
                 if (new_cell == rook_cell)
                     _validate(cell, cell + ray*2, Move::CASTLING);
@@ -218,16 +202,16 @@ namespace Piece
         for (int_mch ray_index = a; ray_index < b; ray_index++)
         {
             Dir ray = RAYS[ray_index];
-            new_cell = cell;
+            coord_mch new_cell = cell;
 
             while (Board::is_within(new_cell, new_cell+ray))
             {
                 new_cell += ray;
-                new_piece = board[new_cell];
-                new_type  = get_type(new_piece);
+                pce_mch new_piece = Board::get(board_index, new_cell);
+                Type     new_type = _get_type(new_piece);
 
                 bool new_is_empty = new_type == Type::EMPTY;
-                if (!new_is_empty && get_color(new_piece) == color) break;
+                if (!new_is_empty && _get_color(new_piece) == color) break;
 
                 if (color == Game::current_side)
                 {
@@ -236,7 +220,7 @@ namespace Piece
                 }
                 // if the opponent manages to capture the King
                 else if (new_type == Type::KING)
-                    king_hurt(board_index, cell);
+                    _hurt_king(board_index, cell);
 
                 // no reason to check more than one step in any direction
                 // if the piece is of 'not-sliding' type (e.g. Knight)

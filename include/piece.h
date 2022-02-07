@@ -1,8 +1,8 @@
 #pragma once
 #include <Arduino.h>
 #include "core/utils.h"
-#include "target.h"
 
+#include "move.h"
 #include "board.h"
 #include "mask.h"
 
@@ -10,7 +10,6 @@ namespace Piece
 {
     #ifdef DEBUG
         const char VALID_CHARS[] = "kqrnbp";  // KEEP IN LOWER CASE!
-        const int_mch NUM_TYPES = sizeof(VALID_CHARS)/sizeof(VALID_CHARS[0]);
     #endif
     const char EMPTY_CHAR = '.';
     enum class Type : pce_mch
@@ -30,7 +29,7 @@ namespace Piece
 
     enum class Color : pce_mch
     {
-        MASK  = 0b00100000,
+        MASK  = (pce_mch)Type::MASK + 1,
 
         BLACK = 0 * MASK,
         WHITE = 1 * MASK
@@ -38,7 +37,7 @@ namespace Piece
 
     enum class Shift : pce_mch
     {
-        MASK  = 0b01000000,
+        MASK  = (pce_mch)Color::MASK << 1,
 
         FALSE = 0 * MASK,
         TRUE  = 1 * MASK
@@ -50,8 +49,7 @@ namespace Piece
         COLOR = (pce_mch)Color::MASK,
         SHIFT = (pce_mch)Shift::MASK,
 
-        TCS   = TYPE | COLOR | SHIFT,
-        TC    = TYPE | COLOR,
+        TC    = TYPE | COLOR
     };
 
 
@@ -79,11 +77,11 @@ namespace Piece
         { return piece & (pce_mch)prop; }
 
     char get_char (pce_mch piece);
-    inline Type  get_type (pce_mch piece)
+    inline Type  _get_type (pce_mch piece)
         { return (Type)get_prop(piece, Prop::TYPE); }
-    inline Color get_color(pce_mch piece)
+    inline Color _get_color(pce_mch piece)
         { return (Color)get_prop(piece, Prop::COLOR); }
-    inline Shift get_shift(pce_mch piece)
+    inline Shift _get_shift(pce_mch piece)
         { return (Shift)get_prop(piece, Prop::SHIFT); }
 
     inline bool _is_white(Color color)
@@ -91,16 +89,21 @@ namespace Piece
     inline Color opposite_color(Color color)
         { return  _is_white(color) ? Color::BLACK : Color::WHITE; }
 
-    inline void king_hurt(Board::Index board_index, coord_mch cell)
-        { Mask::append(cell, (Mask::king_is_hurt = (board_index == Board::MINOR)) ? Mask::MENACES : Mask::REGICIDES); }
+    inline void _hurt_king(Board::Index board_index, coord_mch cell)
+        { Mask::set(cell, (Mask::king_is_hurt = (board_index == Board::MINOR)) ? Mask::MENACES : Mask::REGICIDES); }
 
-    coord_mch get_enpassant(coord_mch cell);
-    coord_mch get_castling(Dir ray);
+    coord_mch _get_enpassant(coord_mch cell, bool is_white)
+        { return cell + (is_white) ? D : U; }
+    coord_mch _get_castling(Dir ray, bool is_white)
+        { return (Board::SIDE-1) * (ray == R) + (Board::SIZE-Board::SIDE) * is_white; }
 
-    void _make_move(Board::Index board_index, coord_mch cell_from, coord_mch cell_to, Move move, Type prom_type=Type::EMPTY);
+    void _make_puremove(Board::Index board_index, coord_mch cell_from, coord_mch cell_to, Move move, Type prom_type=Type::EMPTY);
 
     void _validate(coord_mch cell, coord_mch new_cell, Move move);
     void _full_validate(coord_mch cell, coord_mch new_cell, Move move);
 
     void calculate(Board::Index board_index, coord_mch cell);
+
+    void print_color(Color color)
+        { Serial.print(_is_white(color) ? F("WHITE") : F("BLACK")); }
 }

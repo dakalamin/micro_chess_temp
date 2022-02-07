@@ -12,7 +12,7 @@ namespace Game
 
     void print_side()
     {
-        //Piece::print_color(current_side);
+        Piece::print_color(current_side);
         Serial.println(F(" side is playing now"));
     }
 
@@ -24,10 +24,12 @@ namespace Game
                 Serial.print(F("CHECKMATE")); break;
             case State::STALEMATE:
                 Serial.print(F("STALEMATE")); break;
+            case State::DRAW:
+                Serial.print(F("DRAW")); break;
         }
     }
 
-    void reset(Piece::Color start_side)  // start_side=START_SIDE
+    void reset(Piece::Color start_side)
     {
         current_state = State::NEUTRAL;
         current_side  = start_side;
@@ -60,13 +62,13 @@ namespace Game
         Piece::calculate(Board::MAJOR, cell);
     }
 
-    void make_move(coord_mch cell_from, coord_mch cell_to, Piece::Move move, Piece::Type prom_type)
+    void _make_move(coord_mch cell_from, coord_mch cell_to, Piece::Move move, Piece::Type prom_type)
     {
         switch_sides();
         last_cell = cell_to;
         last_move = move;
 
-        Piece::_make_move(Board::MAJOR, cell_from, cell_to, move, prom_type);
+        Piece::_make_puremove(Board::MAJOR, cell_from, cell_to, move, prom_type);
     }
 
     void make_move(coord_mch cell_from, coord_mch cell_to, Piece::Type prom_type)
@@ -74,7 +76,7 @@ namespace Game
         Piece::Move move = Target::get(cell_to);
         if (!Piece::move_is_valid(move)) return;
 
-        make_move(cell_from, cell_to, Target::get(cell_to), prom_type);
+        _make_move(cell_from, cell_to, move, prom_type);
         Game::preanalyze();
     }
 }

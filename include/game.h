@@ -12,7 +12,7 @@ namespace Game
 
     enum class State : uint_mch
     {
-        _END      = 0b10000000,
+        _END      = DFLT_MASK,
 
         NEUTRAL   = 0 * _END,
         CHECK     = 1 | NEUTRAL,  // ШАХ
@@ -38,6 +38,6 @@ namespace Game
 
     void preanalyze();
     void analyze_input(coord_mch cell);
-    void make_move(coord_mch cell_from, coord_mch cell_to, Piece::Move move, Piece::Type prom_type=Piece::Type::EMPTY);
+    void _make_move(coord_mch cell_from, coord_mch cell_to, Piece::Move move, Piece::Type prom_type=Piece::Type::EMPTY);
     void make_move(coord_mch cell_from, coord_mch cell_to, Piece::Type prom_type=Piece::Type::EMPTY);
 }

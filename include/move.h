@@ -5,16 +5,16 @@ namespace Piece
 {
     enum class Move : uint_mch
     {
-        STEP       = 0b00000001,
+        STEP       = DFLT_MASK,
 
         NONE       = 0 * STEP,
-        INVALID    = (1 << 1) | NONE,
+        INVALID    = 1 | NONE,
 
-        CAPTURE    = (1 << 1) | STEP,
-        DOUBLEPAWN = (2 << 1) | STEP,
-        CASTLING   = (3 << 1) | STEP,
-        EN_PASSANT = (4 << 1) | STEP,
-        PROMOTION  = (5 << 1) | STEP
+        CAPTURE    = 2 | STEP,
+        DOUBLEPAWN = 3 | STEP,
+        CASTLING   = 4 | STEP,
+        EN_PASSANT = 5 | STEP,
+        PROMOTION  = 6 | STEP
     };
 
     inline bool move_is_valid(Move move)

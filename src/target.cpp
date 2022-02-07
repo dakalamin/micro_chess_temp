@@ -17,7 +17,7 @@ namespace Target
     void reset()
     {
         for (coord_mch cell = 0; cell < Board::SIZE; cell++)
-            append(cell, Piece::Move::NONE);
+            _set(cell, Piece::Move::NONE);
     }
 
     void print()
