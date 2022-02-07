@@ -10,4 +10,4 @@ using pce_mch   = uint_mch;  // piece describing type (like individual pieces th
 using mask_mch  = uint64_t;  // whole board describing type (like i/o masks)
 using coord_mch = int_mch;   // board coordinate values
 
-const uint_mch DFLT_MASK = INT8_MAX + 1;
+const uint_mch DFLT_MASK_MCH = INT8_MAX + 1;

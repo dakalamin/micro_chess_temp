@@ -31,7 +31,7 @@ namespace Board
     void reset(Index board_index);
 
     void empty(Index board_index, coord_mch cell);
-    void set(Index board_index, coord_mch cell, pce_mch piece)
+    inline void set(Index board_index, coord_mch cell, pce_mch piece)
         { get(board_index, cell) = piece; }
 
 

@@ -5,7 +5,7 @@ namespace Piece
 {
     enum class Move : uint_mch
     {
-        STEP       = DFLT_MASK,
+        STEP       = DFLT_MASK_MCH,
 
         NONE       = 0 * STEP,
         INVALID    = 1 | NONE,

@@ -73,10 +73,10 @@ namespace Piece
     };
 
 
+    char get_char (pce_mch piece);
+
     inline pce_mch get_prop(pce_mch piece, Prop prop)
         { return piece & (pce_mch)prop; }
-
-    char get_char (pce_mch piece);
     inline Type  _get_type (pce_mch piece)
         { return (Type)get_prop(piece, Prop::TYPE); }
     inline Color _get_color(pce_mch piece)
@@ -92,9 +92,9 @@ namespace Piece
     inline void _hurt_king(Board::Index board_index, coord_mch cell)
         { Mask::set(cell, (Mask::king_is_hurt = (board_index == Board::MINOR)) ? Mask::MENACES : Mask::REGICIDES); }
 
-    coord_mch _get_enpassant(coord_mch cell, bool is_white)
+    inline coord_mch _get_enpassant(coord_mch cell, bool is_white)
         { return cell + (is_white) ? D : U; }
-    coord_mch _get_castling(Dir ray, bool is_white)
+    inline coord_mch _get_castling(Dir ray, bool is_white)
         { return (Board::SIDE-1) * (ray == R) + (Board::SIZE-Board::SIDE) * is_white; }
 
     void _make_puremove(Board::Index board_index, coord_mch cell_from, coord_mch cell_to, Move move, Type prom_type=Type::EMPTY);
@@ -104,6 +104,6 @@ namespace Piece
 
     void calculate(Board::Index board_index, coord_mch cell);
 
-    void print_color(Color color)
+    inline void print_color(Color color)
         { Serial.print(_is_white(color) ? F("WHITE") : F("BLACK")); }
 }

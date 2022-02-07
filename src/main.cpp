@@ -14,8 +14,10 @@ void setup()
     Serial.println();
 
     Game::reset();
-    //Board::fill(Board::MAJOR, Board::BRD_2);
-    //Game::preanalyze();
+    #ifdef DEBUG
+        Board::fill(Board::MAJOR, Board::BRD_2);
+        Game::preanalyze();
+    #endif
 
     Board::print_cellnames();
     Board::print_pieces(Board::MAJOR);

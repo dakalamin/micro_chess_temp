@@ -8,7 +8,6 @@ namespace Piece
 {
     char get_char(pce_mch piece)
     {
-        // 0b01CTTTTT - where C is Color, T is Type
         Type type = _get_type(piece);
 
         return (type == Type::EMPTY) ?
@@ -27,22 +26,24 @@ namespace Piece
 
         switch (move)
         {
-            case Move::STEP:
-            case Move::DOUBLEPAWN:
+            // std:c++17 and later - attribute feature (a hint for compiler)
+            // https://docs.microsoft.com/en-us/cpp/cpp/switch-statement-cpp
+            case Move::STEP:        [[fallthrough]];
+            case Move::DOUBLEPAWN:  [[fallthrough]];
             case Move::CAPTURE:
                 Board::set(board_index, cell_to, (piece_from & (pce_mch)Prop::TC) | (pce_mch)Shift::TRUE);
                 Board::empty(board_index, cell_from);
-                return;
+                break;
 
             case Move::CASTLING:
                 _make_puremove(board_index, cell_from, cell_to, Move::STEP);
                 _make_puremove(board_index, _get_castling((cell_from > cell_to) ? R : L, is_white), (cell_from + cell_to)/2, Move::STEP);
-                return;
+                break;
 
             case Move::EN_PASSANT:
                 _make_puremove(board_index, cell_from, cell_to, Move::STEP);
                 Board::empty(board_index, _get_enpassant(cell_to, is_white));
-                return;
+                break;
 
             case Move::PROMOTION:
                 #ifdef DEBUG
@@ -55,11 +56,10 @@ namespace Piece
 
                 Board::set(board_index, cell_to, (pce_mch)prom_type | (pce_mch)color_from | (pce_mch)Shift::TRUE);
                 Board::empty(board_index, cell_from);
-                return;
+                break;
 
             default:
                 assert_forced_val_mch((uint_mch)move, DEC);
-                return;
         }
     }
 

@@ -12,7 +12,7 @@ namespace Game
 
     enum class State : uint_mch
     {
-        _END      = DFLT_MASK,
+        _END      = DFLT_MASK_MCH,
 
         NEUTRAL   = 0 * _END,
         CHECK     = 1 | NEUTRAL,  // ШАХ
