@@ -47,11 +47,13 @@ namespace Piece
 
             case Move::PROMOTION:
                 #ifdef DEBUG
+                {
                     bool promtype_is_valid = false;
                     for (Type type : PROM_TYPES)
                         promtype_is_valid += (prom_type == type);
 
                     assert_val_mch(promtype_is_valid, (pce_mch)prom_type, DEC);
+                }
                 #endif
 
                 Board::set(board_index, cell_to, (pce_mch)prom_type | (pce_mch)color_from | (pce_mch)Shift::TRUE);
