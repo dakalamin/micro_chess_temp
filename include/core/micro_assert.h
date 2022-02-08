@@ -6,27 +6,27 @@
     #if defined(ASSERT_SERIAL) && defined(SERIAL_SPEED)
         #define assert_mch(e) \
             if (!(e)) { __ser_output(__func__, __FILE__, __LINE__); __ser_abort(); }
-        #define assert_msg_mch(e, m) \
-            if (!(e)) { __ser_output(__func__, __FILE__, __LINE__); Serial.print(F(#m)); __ser_abort(); }
         #define assert_forced_msg_mch(m) \
-            assert_msg_mch(false, m);
-        #define assert_val_mch(e, v, ...) \
-            if (!(e)) { __ser_output(__func__, __FILE__, __LINE__); Serial.print(F("VALUE\t")); Serial.println(v, ##__VA_ARGS__); __ser_abort(); }
+            { __ser_output(__func__, __FILE__, __LINE__); Serial.print(F(#m)); __ser_abort(); }
+        #define assert_msg_mch(e, m) \
+            if (!(e)) assert_forced_msg_mch(m);
         #define assert_forced_val_mch(v, ...) \
-            assert_val_mch(false, v, ##__VA_ARGS__);
+            { __ser_output(__func__, __FILE__, __LINE__); Serial.print(F("VALUE\t")); Serial.println(v, ##__VA_ARGS__); __ser_abort(); }
+        #define assert_val_mch(e, v, ...) \
+            if (!(e)) assert_forced_val_mch(v, ##__VA_ARGS__);
     #else
         #define assert_mch(e)                 ((e) ? (void)0 : __ser_abort())
-        #define assert_msg_mch(e, m)          ((e) ? (void)0 : __ser_abort())
         #define assert_forced_msg_mch(m)                       __ser_abort()
-        #define assert_val_mch(e, v, ...)     ((e) ? (void)0 : __ser_abort())
+        #define assert_msg_mch(e, m)          ((e) ? (void)0 : __ser_abort()) 
         #define assert_forced_val_mch(v, ...)                  __ser_abort()
+        #define assert_val_mch(e, v, ...)     ((e) ? (void)0 : __ser_abort()) 
     #endif
 #else
     #define assert_mch(e)                 ((void)0)
-    #define assert_msg_mch(e, m)          ((void)0)
     #define assert_forced_msg_mch(m)      ((void)0)
-    #define assert_val_mch(e, v, ...)     ((void)0)
+    #define assert_msg_mch(e, m)          ((void)0)
     #define assert_forced_val_mch(v, ...) ((void)0)
+    #define assert_val_mch(e, v, ...)     ((void)0)
 #endif
 
 void __ser_output(const char *, const char *, int __lineno);
