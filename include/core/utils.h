@@ -11,3 +11,12 @@ using mask_mch  = uint64_t;  // whole board describing type (like i/o masks)
 using coord_mch = int_mch;   // board coordinate values
 
 const uint_mch DFLT_MASK_MCH = INT8_MAX + 1;
+
+
+#if defined(DEBUG)
+    #if defined(NDEBUG)
+        #error DEBUG and NDEBUG defined simultaneously!
+    #endif
+#elif !defined(NDEBUG)
+    #define NDEBUG
+#endif
