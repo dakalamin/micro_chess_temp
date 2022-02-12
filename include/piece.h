@@ -1,6 +1,6 @@
 #pragma once
-#include <Arduino.h>
 #include "core/utils.h"
+#include "core/micro_serial.h"
 
 #include "move.h"
 #include "board.h"
@@ -105,5 +105,5 @@ namespace Piece
     void calculate(Board::Index board_index, coord_mch cell);
 
     inline void print_color(Color color)
-        { Serial.print(_is_white(color) ? F("WHITE") : F("BLACK")); }
+        { mserial_p(_is_white(color) ? F("WHITE") : F("BLACK")); }
 }

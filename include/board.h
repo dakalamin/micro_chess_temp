@@ -35,8 +35,7 @@ namespace Board
         { get(board_index, cell) = piece; }
 
 
-    template <typename Func>
-    void _print(Func function);
+    void _print(auto function);
 
     void print_pieces(Index board_index);
     void print_cellnames();

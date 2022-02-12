@@ -1,33 +1,39 @@
 #pragma once
-#include <Arduino.h>
 #include "core/utils.h"
+#include "core/micro_serial.h"
 
 #ifdef DEBUG
-    #if defined(ASSERT_SERIAL) && defined(SERIAL_SPEED)
-        #define assert_mch(e) \
-            if (!(e)) { __ser_output(__func__, __FILE__, __LINE__); __ser_abort(); }
-        #define assert_forced_msg_mch(m) \
-            { __ser_output(__func__, __FILE__, __LINE__); Serial.print(F(#m)); __ser_abort(); }
-        #define assert_msg_mch(e, m) \
-            if (!(e)) assert_forced_msg_mch(m);
-        #define assert_forced_val_mch(v, ...) \
-            { __ser_output(__func__, __FILE__, __LINE__); Serial.print(F("VALUE\t")); Serial.println(v, ##__VA_ARGS__); __ser_abort(); }
-        #define assert_val_mch(e, v, ...) \
-            if (!(e)) assert_forced_val_mch(v, ##__VA_ARGS__);
-    #else
-        #define assert_mch(e)                 ((e) ? (void)0 : __ser_abort())
-        #define assert_forced_msg_mch(m)                       __ser_abort()
-        #define assert_msg_mch(e, m)          ((e) ? (void)0 : __ser_abort()) 
-        #define assert_forced_val_mch(v, ...)                  __ser_abort()
-        #define assert_val_mch(e, v, ...)     ((e) ? (void)0 : __ser_abort()) 
+    #if defined(ASSERT_SERIAL) && !defined(SERIAL_SPEED)
+        #pragma message("Warning: SERIAL_SPEED not defined -> ASSERT_SERIAL turned off!")
+        #pragma message("                               (assert is still active though)")
     #endif
-#else
-    #define assert_mch(e)                 ((void)0)
-    #define assert_forced_msg_mch(m)      ((void)0)
-    #define assert_msg_mch(e, m)          ((void)0)
-    #define assert_forced_val_mch(v, ...) ((void)0)
-    #define assert_val_mch(e, v, ...)     ((void)0)
+
+    #ifdef ASSERT_SERIAL
+        #define assert_mch(e) \
+            _init_assert(); if (!(e)) { _ser_output(); }
+        #define assert_msg_mch(e, m) \
+            _init_assert(); if (!(e)) { mserial_ps(#m); _ser_output(); }
+        #define assert_forced_msg_mch(m) \
+            assert_msg_mch(false, m)
+        #define assert_val_mch(e, v, ...) \
+            _init_assert(); if (!(e)) { mserial_ps("VALUE\t"); mserial_pln(v, ##__VA_ARGS__); _ser_output(); }
+        #define assert_forced_val_mch(v, ...) \
+            assert_val_mch(false, v, ##__VA_ARGS__);
+    #endif
+#elif defined(ASSERT_SERIAL)
+    #undef ASSERT_SERIAL
 #endif
 
-void __ser_output(const char *, const char *, int __lineno);
-void __ser_abort();
+#ifndef ASSERT_SERIAL
+    #define assert_mch(e)                  ((void)0)
+    #define assert_msg_mch(e, m)           ((void)0)
+    #define assert_forced_msg_mch(m)       ((void)0)
+    #define assert_val_mch(e, v, ...)      ((void)0)
+    #define assert_forced_val_mch(v, ...)  ((void)0)
+#endif
+
+
+void _init_assert();
+
+void _ser_output();
+void _ser_abort();

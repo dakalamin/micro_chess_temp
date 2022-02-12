@@ -1,5 +1,6 @@
-#include <Arduino.h>
+#include "core/micro_serial.h"
 #include "game.h"
+
 #include "board.h"
 
 namespace Game
@@ -13,7 +14,7 @@ namespace Game
     void print_side()
     {
         Piece::print_color(current_side);
-        Serial.println(F(" side is playing now"));
+        mserial_plns(" side is playing now");
     }
 
     void print_state()
@@ -21,11 +22,11 @@ namespace Game
         switch (current_state)
         {
             case State::CHECKMATE:
-                Serial.print(F("CHECKMATE")); break;
+                mserial_plns("CHECKMATE"); break;
             case State::STALEMATE:
-                Serial.print(F("STALEMATE")); break;
+                mserial_plns("STALEMATE"); break;
             case State::DRAW:
-                Serial.print(F("DRAW")); break;
+                mserial_plns("DRAW"); break;
         }
     }
 

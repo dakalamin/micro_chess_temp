@@ -1,4 +1,4 @@
-#include <Arduino.h>
+#include "core/micro_serial.h"
 #include "target.h"
 
 namespace Target
@@ -26,10 +26,10 @@ namespace Target
         {
             for (coord_mch column = 0; column < Board::SIDE; column++)
             {
-                Serial.print((uint_mch)get(row*Board::SIDE + column), DEC);
-                Serial.print(F("  "));
+                mserial_p((uint_mch)get(row*Board::SIDE + column), DEC);
+                mserial_ps("  ");
             }
-            Serial.println();
+            mserial_pln(' ');
         }
     }
 }

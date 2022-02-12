@@ -1,4 +1,5 @@
-#include <Arduino.h>
+#include "core/micro_serial.h"
+#include "core/micro_serial.h"
 #include "mask.h"
 
 #include "board.h"
@@ -16,13 +17,13 @@ namespace Mask
             uint8_t value = get(mask_index) >> (row * 8);
             for (coord_mch column = 0; column < Board::SIDE; column++)
             {
-                Serial.print(value & 1, BIN);
-                Serial.print(F("  "));
+                mserial_p(value & 1, BIN);
+                mserial_ps("  ");
 
                 value >>= 1;
             }
-            Serial.println();
+            mserial_pln();
         }
-        Serial.println();
+        mserial_pln();
     }
 }

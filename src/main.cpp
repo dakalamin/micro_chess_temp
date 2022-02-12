@@ -2,6 +2,7 @@
 
 #include "core/utils.h"
 #include "core/micro_assert.h"
+#include "core/micro_serial.h"
 
 #include "board.h"
 #include "game.h"
@@ -9,11 +10,13 @@
 
 void setup()
 {
-    Serial.begin(SERIAL_SPEED);
-    while (!Serial) { }
-    Serial.println();
+    mserial_begin();
 
     Game::reset();
+    
+    Game::print_side();
+    mserial_pln();
+
     #ifdef DEBUG
         Board::fill(Board::MAJOR, Board::BRD_2);
         Game::preanalyze();

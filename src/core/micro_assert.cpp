@@ -1,15 +1,29 @@
 #include "core/micro_assert.h"
 
-void __ser_output(const char *__func, const char *__file, int __lineno)
+void _init_assert()
 {
-    Serial.println();
-    Serial.print(F("FUNC\t")); Serial.println(__func);
-    Serial.print(F("FILE\t")); Serial.println(__file);
-    Serial.print(F("LINE\t")); Serial.println(__lineno, DEC);
+    static bool _assert_initialized = false;
+    if (_assert_initialized) return;
+
+    #ifdef NDEBUG
+    assert_forced_msg_mch(assert_mch is still active in RELEASE);
+    #endif
+
+    _assert_initialized = true;
 }
 
-void __ser_abort()
+
+void _ser_output()
 {
-    Serial.flush();
+    mserial_ps("FUNC\t"); mserial_pln(__func__);
+    mserial_ps("FILE\t"); mserial_pln(__FILE__);
+    mserial_ps("LINE\t"); mserial_pln(__LINE__, DEC);
+
+    _ser_abort();
+}
+
+void _ser_abort()
+{
+    mserial_flush();
     abort();
 }

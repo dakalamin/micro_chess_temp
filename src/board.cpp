@@ -1,6 +1,5 @@
-#include <Arduino.h>
-
 #include "core/micro_assert.h"
+#include "core/micro_serial.h"
 #include "board.h"
 
 #include "game.h"
@@ -68,8 +67,7 @@ namespace Board
     }
 
 
-    template <typename Func>
-    void _print(Func function)
+    void _print(auto function)
     {
         for (coord_mch row = 0; row < SIDE; row++)
         {
@@ -78,11 +76,11 @@ namespace Board
                 char a, b;
                 function(row*SIDE + column, a, b);
 
-                Serial.print(a); Serial.print(b); Serial.print(' ');
+                mserial_p(a); mserial_p(b); mserial_p(' ');
             }
-            Serial.println(); 
+            mserial_pln(); 
         }
-        Serial.println();
+        mserial_pln();
     }
 
     void print_pieces(Index board_index)
