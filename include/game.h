@@ -4,6 +4,7 @@
 #include "piece.h"
 #include "move.h"
 #include "target.h"
+#include "board.h"
 
 namespace Game
 {
@@ -14,15 +15,16 @@ namespace Game
     {
         _END      = DFLT_MASK_MCH,
 
-        NEUTRAL   = 0 * _END,
-        CHECK     = 1 | NEUTRAL,  // ШАХ
+        NEUTRAL   = ASCII::encode('N'),         // ПРОДОЛЖЕНИЕ ПАРТИИ
+        CHECK     = ASCII::encode('C'),         // ШАХ
 
-        CHECKMATE = 2 | _END,     // МАТ
-        STALEMATE = 3 | _END,     // ПАТ
-        DRAW      = 4 | _END      // НИЧЬЯ
+        CHECKMATE = ASCII::encode('M') | _END,  // МАТ
+        STALEMATE = ASCII::encode('S') | _END,  // ПАТ
+        DRAW      = ASCII::encode('D') | _END   // НИЧЬЯ
     };
     extern State current_state;
 
+    extern count_mch   turns_counter;
     extern Piece::Move last_move;
     extern coord_mch   last_cell;
 
@@ -31,13 +33,14 @@ namespace Game
         { return (uint_mch)current_state & (uint_mch)State::_END; }
     inline void switch_sides()
         { current_side = Piece::opposite_color(current_side); }
-
-    void print_state();
-    void print_side();
     void reset(Piece::Color start_side=START_SIDE);
 
+    void print_side();
+    void print_state();
+
+    inline void analyze_input(coord_mch cell)
+        { Piece::calculate(Board::MAJOR, cell); }
     void preanalyze();
-    void analyze_input(coord_mch cell);
     void _make_move(coord_mch cell_from, coord_mch cell_to, Piece::Move move, Piece::Type prom_type=Piece::Type::EMPTY);
     void make_move(coord_mch cell_from, coord_mch cell_to, Piece::Type prom_type=Piece::Type::EMPTY);
 }

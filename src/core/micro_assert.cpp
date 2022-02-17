@@ -15,7 +15,7 @@ void _init_assert()
 
 void _ser_output()
 {
-    mserial_ps("FUNC\t"); mserial_pln(__func__);
+    mserial_ps("FUNC\t"); mserial_pln(__PRETTY_FUNCTION__);
     mserial_ps("FILE\t"); mserial_pln(__FILE__);
     mserial_ps("LINE\t"); mserial_pln(__LINE__, DEC);
 

@@ -9,24 +9,17 @@
 
 namespace Board
 {
-    pce_mch arr[Index::arr_size][SIZE];
+    pce_mch _arr[Index::_arr_size][SIZE];
 
 
     void fill(Index board_index, const char contents[])
     {
-        assert_val_mch(sizeof_array_mch(contents) != SIZE+1, contents);
+        assert_val_mch(SIZEOF_ARRAY_MCH(contents) != SIZE+1, contents);
 
         for (coord_mch cell = 0; cell < SIZE; cell++)
         {
             char new_piece = contents[cell];
-
-            #ifdef DEBUG
-                bool piece_is_valid = (new_piece == Piece::EMPTY_CHAR);
-                for (char valid_char : Piece::VALID_CHARS)
-                    piece_is_valid += ((new_piece | (char)Piece::Prop::COLOR) == valid_char);
-
-                assert_val_mch(piece_is_valid, contents);
-            #endif
+            assert_val_mch(Piece::_char_is_valid(new_piece), contents);
 
             pce_mch      piece = (pce_mch)Piece::Type::EMPTY;;
             Piece::Shift shift = Piece::Shift::FALSE;
@@ -56,7 +49,7 @@ namespace Board
                 for (coord_mch cell = 0; cell < SIZE; cell++)
                     set(MINOR, cell, get(MAJOR, cell));
 
-                Mask::king_is_hurt = false;
+                Mask::_king_is_hurt = false;
                 return;
         }
     }

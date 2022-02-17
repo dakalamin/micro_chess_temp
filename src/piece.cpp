@@ -8,10 +8,20 @@ namespace Piece
 {
     char get_char(pce_mch piece)
     {
-        Type type = _get_type(piece);
+        if (_get_type(piece) == Type::EMPTY)
+            return EMPTY_CHAR;
 
-        return (type == Type::EMPTY) ?
-            EMPTY_CHAR : ((pce_mch)type | ((pce_mch)_get_color(piece) ^ (pce_mch)Color::WHITE) | 0b01000000);
+        const auto convert = _is_white(_get_color(piece)) ? ASCII::to_upper : ASCII::to_lower;
+        return convert(ASCII::decode(piece));
+    }
+
+    bool _char_is_valid(char letter)
+    {
+        bool piece_is_valid = (letter == EMPTY_CHAR);
+        for (char valid_char : VALID_CHARS)
+            piece_is_valid += (ASCII::to_upper(letter) == ASCII::to_upper(valid_char));
+
+        return piece_is_valid;
     }
 
 
@@ -70,8 +80,8 @@ namespace Piece
         for (coord_mch sub_cell = 0; sub_cell < Board::SIZE; sub_cell++)
             Piece::calculate(Board::MINOR, sub_cell);
 
-        if (Mask::king_is_hurt)
-            Target::_set(new_cell, Move::INVALID);
+        if (Mask::_king_is_hurt)
+            Target::_set(new_cell, Move::BLOCKED);
         else
         {
             Target::_set(new_cell, move);
@@ -85,57 +95,63 @@ namespace Piece
         _validate(cell, new_cell, move);
     }
 
-
+    // magic happens here
     void calculate(Board::Index board_index, coord_mch cell)
     {
         const pce_mch  piece = Board::get(board_index, cell);
         const Type     type  = _get_type(piece);
         const Color    color = _get_color(piece);
-        const bool  is_white = _is_white(color);
+        const bool  is_white = _is_white(color);  // precomputed just because it appeares several times below
 
         if (board_index == Board::MAJOR)
-        {
-            Target::reset();
-            Mask::reset(Mask::REGICIDES);
-        }
+            Target::reset();  // target is unique for every piece of <current_side> color
+
+        // EMPTY cells are always ignored and only opponent's pieces are calculated on MINOR
         if (type == Type::EMPTY || (board_index == Board::MINOR && color == Game::current_side)) return;
 
         // a and b - start and end indices
-        // for rays in 'const int_mch Piece::RAYS[]' to loop through
-        int_mch a{0}, b{0};  bool is_sliding{false};
+        // for rays in < Piece::RAYS[] > to loop through
+        int_mch a{0}, b{0};  bool is_sliding;
         switch (type)
-        {
+        { 
+            case Type::QUEEN:
+                is_sliding = true;
+                a = 0;  b = RAYS_ROW*2;
+                break;
             case Type::ROOK:
-                a = 0; b = 4;  is_sliding = true;
+                is_sliding = true;
+                a = 0;  b = RAYS_ROW;                
                 break;
             case Type::BISHOP:
-                a = 4; b = 8;  is_sliding = true;
+                is_sliding = true;
+                a = RAYS_ROW;  b = RAYS_ROW*2;
                 break;
-            case Type::QUEEN:
-                a = 0; b = 8;  is_sliding = true;
-                break;
-
             case Type::KNIGHT:
-                a = 8; b = 16;
+                is_sliding = false;
+                a = RAYS_ROW*2;  b = RAYS_ROW*4;
                 break;
             case Type::KING:
-                a = 0; b = 8;
+                is_sliding = false;
+                a = 0;  b = RAYS_ROW*2;
                 break;
         }
 
 
+        // PAWNs are analyzed separately because of their unique behaviour
         if (type == Type::PAWN)
         {
-            // #include <initializer_list> failed (perhaps, AVR compiler doesn't support this), so simply using an array
-            const Dir pawn_rays[] = { (is_white) ? UR : DR, (is_white) ? UL : DL };
+            // #include <initializer_list> failed (perhaps, AVR compiler doesn't support this), so simply using const array
+            const Dir pawn_rays[] = { (is_white) ? UR : DR, (is_white) ? UL : DL };  // PAWN CAPTURE/EN_PASSANT rays (forward diagonals)
             for (Dir ray : pawn_rays)
             {
-                coord_mch new_cell = cell + ray;
+                const coord_mch new_cell = cell + ray;
                 if (!Board::is_within(cell, new_cell)) continue;
 
-                coord_mch new_piece = Board::get(board_index, new_cell);
-                Type new_type = _get_type(new_piece);
+                const coord_mch new_piece = Board::get(board_index, new_cell);
+                const Type new_type = _get_type(new_piece);
 
+                // when PAWN happens to stumble over piece of its color
+                // (it can still be EMPTY in case of EN_PASSANT)
                 if (new_type != Type::EMPTY && _get_color(new_piece) == color) continue;
 
                 if (color == Game::current_side)
@@ -152,10 +168,13 @@ namespace Piece
                     _full_validate(cell, new_cell, move);
                     
                 }
+                // we're only interested if opponent manages to capture the King
+                // (at this point we're already sure it's of <current_side> color)
                 else if (new_type == Type::KING)
                     _hurt_king(board_index, cell);
             }
 
+            // no sense to calculate opponent's PAWNs as now we're looking only for forward non-CAPTURE steps
             if (color != Game::current_side)
                 return;
 
@@ -164,9 +183,11 @@ namespace Piece
             if (!(Board::is_within(cell, new_cell) && _get_type(Board::get(board_index, new_cell)) == Type::EMPTY)) 
                 return;
 
+            // simulate step on MINOR
             Board::reset(Board::MINOR);
             _full_validate(cell, new_cell, Move::STEP);
 
+            // PAWNs can also make a double forwards step if it hasn't moved from starting position
             new_cell += ray;
             pce_mch new_piece = Board::get(board_index, new_cell);
             if (!(Board::is_within(cell, new_cell) && _get_type(new_piece) == Type::EMPTY && _get_shift(new_piece) == Shift::FALSE))
@@ -177,30 +198,39 @@ namespace Piece
 
             return;
         }
-
+        // analyzing KING's CASTLING steps
         else if (piece == ((pce_mch)Type::KING | (pce_mch)Game::current_side | (pce_mch)Shift::FALSE))
         {
             Dir castling_rays[] = {R, L};
-
             for (Dir ray : castling_rays)
             {
+                // CASTLING is only possible if ROOK to swap with hasn't moved from starting position 
                 coord_mch rook_cell = _get_castling(ray, is_white);
                 if (Board::get(board_index, rook_cell) != ((pce_mch)Type::ROOK | (pce_mch)Game::current_side | (pce_mch)Shift::FALSE))
                     continue;
 
                 coord_mch new_cell = cell + ray;
 
+                // 
                 Board::reset(Board::MINOR);
-                for (int_mch counter = 0; new_cell != rook_cell && _get_type(Board::get(board_index, new_cell)) == Type::EMPTY; counter++, new_cell += ray)
-                {
-                    if (counter < 2) Board::set(Board::MINOR, new_cell, piece);
+                for (int_mch king_steps = 0;
+                    ( new_cell != rook_cell ) && ( _get_type(Board::get(board_index, new_cell)) == Type::EMPTY );
+                    king_steps++, new_cell += ray)
+                { 
+                    // cells that KING moves through must not be under opponent's attack
+                    // and to simulate this we place KINGs on these cells on MINOR
+                    // (actually, we place <piece> just because at this moment it so happens
+                    // that <piece> contains KING piece of <current_side> color - and that's what we need)
+                    //
+                    // our original KING also remains on its <cell> on MINOR as it must not be under attack as well
+                    if (king_steps < KING_CASTLING_MOVES) Board::set(Board::MINOR, new_cell, piece);
                 }
                 if (new_cell == rook_cell)
                     _validate(cell, cell + ray*2, Move::CASTLING);
             }
         }
 
-        // loop over all different directions suitable for the particular piece type
+        // loop over all different directions suitable for particular piece type
         for (int_mch ray_index = a; ray_index < b; ray_index++)
         {
             Dir ray = RAYS[ray_index];
@@ -209,23 +239,24 @@ namespace Piece
             while (Board::is_within(new_cell, new_cell+ray))
             {
                 new_cell += ray;
-                pce_mch new_piece = Board::get(board_index, new_cell);
-                Type     new_type = _get_type(new_piece);
+                const pce_mch new_piece = Board::get(board_index, new_cell);
+                const Type    new_type  = _get_type(new_piece);
 
-                bool new_is_empty = new_type == Type::EMPTY;
+                // if we step on cell occupied by piece of same color
+                const bool new_is_empty = new_type == Type::EMPTY;
                 if (!new_is_empty && _get_color(new_piece) == color) break;
 
                 if (color == Game::current_side)
                 {
+                    // simulate this move on MINOR
                     Board::reset(Board::MINOR);
                     _full_validate(cell, new_cell, (new_is_empty) ? Move::STEP : Move::CAPTURE);
                 }
-                // if the opponent manages to capture the King
                 else if (new_type == Type::KING)
                     _hurt_king(board_index, cell);
 
                 // no reason to check more than one step in any direction
-                // if the piece is of 'not-sliding' type (e.g. Knight)
+                // if piece is of not-sliding type (e.g. KNIGHT)
                 if (!(is_sliding && new_is_empty))
                     break;
             }

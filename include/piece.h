@@ -8,48 +8,45 @@
 
 namespace Piece
 {
-    #ifdef DEBUG
-        const char VALID_CHARS[] = "kqrnbp";  // KEEP IN LOWER CASE!
-    #endif
-    const char EMPTY_CHAR = '.';
+    enum class Prop : pce_mch
+    {
+        TYPE  = (pce_mch)ASCII::Bits::NOCASE_CHAR,
+        COLOR = (pce_mch)ASCII::Bits::LOWERCASE,
+        SHIFT = COLOR << 1,
+
+        TC    = TYPE | COLOR
+    };
+
+    const char VALID_CHARS[] = "KQRNBP";
+    const char EMPTY_CHAR = '.';  // That is printed for EMPTY cells
+
     enum class Type : pce_mch
     {
-        MASK   = 0b00011111,
-
-        EMPTY  =  0  & MASK,
-        KING   = 'K' & MASK,  // 010 0b01011 11 -
-        QUEEN  = 'Q' & MASK,  // 010 0b10001 17 s
-        ROOK   = 'R' & MASK,  // 010 0b10010 18 s
-        KNIGHT = 'N' & MASK,  // 010 0b01110 14 -
-        BISHOP = 'B' & MASK,  // 010 0b00010  2 s
-        PAWN   = 'P' & MASK   // 010 0b10000 16 -
+        EMPTY  = 0,
+        KING   = ASCII::encode('K'),
+        QUEEN  = ASCII::encode('Q'),
+        ROOK   = ASCII::encode('R'),
+        KNIGHT = ASCII::encode('N'),
+        BISHOP = ASCII::encode('B'),
+        PAWN   = ASCII::encode('P')
     };
-    const Type PROM_TYPES[] =
+    const Type PROM_TYPES[] =  // Types that KING can be promoted to
     { Type::QUEEN, Type::ROOK, Type::KNIGHT, Type::BISHOP };
+
+    // During CASTLING either long (left) or short one (right)
+    // KING moves exactly 2 cells in that direction
+    const int_mch KING_CASTLING_MOVES = 2;
 
     enum class Color : pce_mch
     {
-        MASK  = (pce_mch)Type::MASK + 1,
-
-        BLACK = 0 * MASK,
-        WHITE = 1 * MASK
+        BLACK = 0,
+        WHITE = (pce_mch)Prop::COLOR
     };
 
     enum class Shift : pce_mch
     {
-        MASK  = (pce_mch)Color::MASK << 1,
-
-        FALSE = 0 * MASK,
-        TRUE  = 1 * MASK
-    };
-
-    enum class Prop : pce_mch
-    {
-        TYPE  = (pce_mch)Type::MASK,
-        COLOR = (pce_mch)Color::MASK,
-        SHIFT = (pce_mch)Shift::MASK,
-
-        TC    = TYPE | COLOR
+        FALSE = 0,
+        TRUE  = (pce_mch)Prop::SHIFT
     };
 
 
@@ -64,7 +61,8 @@ namespace Piece
         DLL = DL+L, DRR = DR+R, DDL = D+DL, DDR = D+DR,
         ULL = UL+L, URR = UR+R, UUL = U+UL, UUR = U+UR
     };
-    const Dir RAYS[] =
+    const int RAYS_ROW = 4;
+    const Dir RAYS[RAYS_ROW*4] =
     {
         R,   D,   L,   U,    // Horizontal & Vertical
         DR,  DL,  UR,  UL,   // Diagonal
@@ -73,7 +71,8 @@ namespace Piece
     };
 
 
-    char get_char (pce_mch piece);
+    bool _char_is_valid(char letter);
+    char get_char(pce_mch piece);
 
     inline pce_mch get_prop(pce_mch piece, Prop prop)
         { return piece & (pce_mch)prop; }
@@ -90,7 +89,7 @@ namespace Piece
         { return  _is_white(color) ? Color::BLACK : Color::WHITE; }
 
     inline void _hurt_king(Board::Index board_index, coord_mch cell)
-        { Mask::set(cell, (Mask::king_is_hurt = (board_index == Board::MINOR)) ? Mask::MENACES : Mask::REGICIDES); }
+        { Mask::set(cell, (Mask::_king_is_hurt = (board_index == Board::MINOR)) ? Mask::MENACES : Mask::REGICIDES); }
 
     inline coord_mch _get_enpassant(coord_mch cell, bool is_white)
         { return cell + (is_white) ? D : U; }

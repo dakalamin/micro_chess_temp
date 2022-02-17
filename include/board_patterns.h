@@ -12,7 +12,6 @@ namespace Board
     "PPPPPPPP"
     "RNBQKBNR";
 
-    #ifdef DEBUG
     const char BRD_1[] = 
     "rnbqkbnr"
     ".p.p.p.p"
@@ -42,5 +41,4 @@ namespace Board
     "....r..."
     "........"
     "R...K..R";
-    #endif 
 }

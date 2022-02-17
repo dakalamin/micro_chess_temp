@@ -8,17 +8,15 @@
 #include "game.h"
 #include "mask.h"
 
+
 void setup()
 {
     mserial_begin();
 
     Game::reset();
     
-    Game::print_side();
-    mserial_pln();
-
     #ifdef DEBUG
-        Board::fill(Board::MAJOR, Board::BRD_2);
+        Board::fill(Board::MAJOR, Board::BRD_3);
         Game::preanalyze();
     #endif
 
@@ -27,9 +25,21 @@ void setup()
 
     Mask::print(Mask::FRONTLINE);
 
-    Game::analyze_input(34);
+    Game::analyze_input(62);
     Target::print();
 }
 
 void loop()
-{ }
+{
+    /*while (!Serial.available())
+        delay(10);
+
+    char buf[2] = {};
+    Serial.readBytes(buf, 4);
+
+    Serial.print(buf[0]);
+    Serial.print(' ');
+    Serial.println(buf[1]);
+
+    Serial.find('\0');*/
+}

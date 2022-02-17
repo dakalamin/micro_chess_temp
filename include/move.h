@@ -5,18 +5,21 @@ namespace Piece
 {
     enum class Move : uint_mch
     {
-        STEP       = DFLT_MASK_MCH,
+        _INVALID   = DFLT_MASK_MCH,
 
-        NONE       = 0 * STEP,
-        INVALID    = 1 | NONE,
+        STEP       = ASCII::encode('S'),
+        CAPTURE    = ASCII::encode('A'),
+        DOUBLEPAWN = ASCII::encode('D'),
+        CASTLING   = ASCII::encode('C'),
+        EN_PASSANT = ASCII::encode('E'),
+        PROMOTION  = ASCII::encode('P'),
 
-        CAPTURE    = 2 | STEP,
-        DOUBLEPAWN = 3 | STEP,
-        CASTLING   = 4 | STEP,
-        EN_PASSANT = 5 | STEP,
-        PROMOTION  = 6 | STEP
+        NONE       = ASCII::encode('N') | _INVALID,
+        BLOCKED    = ASCII::encode('I') | _INVALID
     };
 
-    inline bool move_is_valid(Move move)
-        { return (uint_mch)move & (uint_mch)Move::STEP; }
+    inline bool move_is_invalid(Move move)
+        { return (uint_mch)move & (uint_mch)Move::_INVALID; }
+    inline char move2char(Move move)
+        { return ASCII::to_upper(ASCII::decode(move)); }
 }

@@ -1,15 +1,16 @@
 #include "core/micro_serial.h"
 #include "target.h"
+#include "piece.h"
 
 namespace Target
 {
-    Piece::Move arr[Board::SIZE];
+    Piece::Move _arr[Board::SIZE];
 
 
     bool is_empty()
     {
         for (coord_mch cell = 0; cell < Board::SIZE; cell++)
-            if (Piece::move_is_valid(get(cell))) return false;
+            if (!Piece::move_is_invalid(get(cell))) return false;
 
         return true;
     }
@@ -26,7 +27,7 @@ namespace Target
         {
             for (coord_mch column = 0; column < Board::SIDE; column++)
             {
-                mserial_p((uint_mch)get(row*Board::SIDE + column), DEC);
+                mserial_p(Piece::move2char(get(row*Board::SIDE + column)));
                 mserial_ps("  ");
             }
             mserial_pln(' ');
