@@ -1,5 +1,3 @@
-#include "core/micro_assert.h"
-#include "core/micro_serial.h"
 #include "game.h"
 
 namespace Game

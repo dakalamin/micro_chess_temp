@@ -1,5 +1,4 @@
 #pragma once
-#include <Arduino.h>
 #include "core/utils.h"
 #include "board_patterns.h"
 
@@ -10,9 +9,9 @@ namespace Board
         MAJOR,
         MINOR,
 
-        _arr_size
+        _buffer_size
     };
-    extern pce_mch _arr[Index::_arr_size][SIZE];
+    extern pce_mch _buffer[Index::_buffer_size][SIZE];
     
     inline bool is_within(coord_mch cell)
         { return (cell >= 0) && (cell < SIZE); }
@@ -20,7 +19,7 @@ namespace Board
         { return is_within(cell_from) && is_within(cell_to) && (abs((cell_from % SIDE) - (cell_to % SIDE)) < 3); }
 
     inline pce_mch* _get_arr(Index board_index)
-        { return _arr[board_index]; }
+        { return _buffer[board_index]; }
     inline pce_mch& get(Index board_index, coord_mch cell)
         { return _get_arr(board_index)[cell]; }
 
@@ -34,6 +33,6 @@ namespace Board
 
     void _print(auto function);
 
-    void print_pieces(Index board_index);
+    void print_pieces(Index board_index, bool show_shift=false);
     void print_cellnames();
 }

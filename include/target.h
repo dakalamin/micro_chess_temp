@@ -6,11 +6,11 @@
 
 namespace Target
 {
-    extern Piece::Move _arr[Board::SIZE];
+    extern Piece::Move _buffer[Board::SIZE];
 
 
     inline Piece::Move& get(coord_mch cell)
-        { return _arr[cell]; }
+        { return _buffer[cell]; }
     inline void _set(coord_mch cell, Piece::Move move)
         { get(cell) = move; }
 

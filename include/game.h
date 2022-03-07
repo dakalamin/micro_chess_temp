@@ -13,7 +13,7 @@ namespace Game
 
     enum class State : uint_mch
     {
-        _END      = DFLT_MASK_MCH,
+        _END      = LEFTMOST_BIT,
 
         NEUTRAL   = ASCII::encode('N'),         // ПРОДОЛЖЕНИЕ ПАРТИИ
         CHECK     = ASCII::encode('C'),         // ШАХ

@@ -1,10 +1,9 @@
-#include "core/micro_serial.h"
 #include "target.h"
 #include "piece.h"
 
 namespace Target
 {
-    Piece::Move _arr[Board::SIZE];
+    Piece::Move _buffer[Board::SIZE];
 
 
     bool is_empty()
@@ -25,10 +24,11 @@ namespace Target
     {
         for (coord_mch row = 0; row < Board::SIDE; row++)
         {
+            mserial_ps("   ");
             for (coord_mch column = 0; column < Board::SIDE; column++)
             {
                 mserial_p(Piece::move2char(get(row*Board::SIDE + column)));
-                mserial_ps("  ");
+                mserial_p(' ');
             }
             mserial_pln(' ');
         }

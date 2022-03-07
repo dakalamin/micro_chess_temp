@@ -1,6 +1,5 @@
 #pragma once
 #include "core/utils.h"
-#include "core/micro_serial.h"
 
 #include "move.h"
 #include "board.h"

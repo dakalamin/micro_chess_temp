@@ -1,5 +1,3 @@
-#include "core/micro_assert.h"
-#include "core/micro_serial.h"
 #include "board.h"
 
 #include "game.h"
@@ -9,7 +7,7 @@
 
 namespace Board
 {
-    pce_mch _arr[Index::_arr_size][SIZE];
+    pce_mch _buffer[Index::_buffer_size][SIZE];
 
 
     void fill(Index board_index, const char contents[])
@@ -64,6 +62,7 @@ namespace Board
     {
         for (coord_mch row = 0; row < SIDE; row++)
         {
+            mserial_ps("   ");
             for (coord_mch column = 0; column < SIDE; column++)
             {
                 char a, b;
@@ -76,14 +75,16 @@ namespace Board
         mserial_pln();
     }
 
-    void print_pieces(Index board_index)
+    void print_pieces(Index board_index, bool show_shift)
     {
-        _print([board_index](coord_mch cell, char& piece_char, char& piece_shift)
+        _print([board_index, show_shift](coord_mch cell, char& piece_char, char& piece_shift)
         {
             pce_mch piece = get(board_index, cell);
             piece_char    = Piece::get_char(piece);
 
-            if (Piece::_get_type(piece) == Piece::Type::EMPTY)
+            if (!show_shift)
+                piece_shift = ASCII::NULLCHAR;
+            else if (Piece::_get_type(piece) == Piece::Type::EMPTY)
                 piece_shift = ' ';
             else if (Piece::_get_shift(piece) == Piece::Shift::TRUE)
                 piece_shift = '+';

@@ -1,45 +1,43 @@
-#include <Arduino.h>
-
 #include "core/utils.h"
-#include "core/micro_assert.h"
-#include "core/micro_serial.h"
 
 #include "board.h"
 #include "game.h"
 #include "mask.h"
+#include "coords.h"
 
+char buf[2];
 
 void setup()
 {
     mserial_begin();
-
     Game::reset();
-    
-    #ifdef DEBUG
-        Board::fill(Board::MAJOR, Board::BRD_3);
-        Game::preanalyze();
-    #endif
-
-    Board::print_cellnames();
-    Board::print_pieces(Board::MAJOR);
-
-    Mask::print(Mask::FRONTLINE);
-
-    Game::analyze_input(62);
-    Target::print();
 }
 
 void loop()
 {
-    /*while (!Serial.available())
-        delay(10);
+    Board::print_pieces(Board::MAJOR);
+    Mask::print(Mask::FRONTLINE);
 
-    char buf[2] = {};
-    Serial.readBytes(buf, 4);
+    coord_mch cell_from, cell_to;
+    while (true)
+    {
+        while (true)
+        {
+            mserial_pln("Choose a cell of a piece to move");
+            cell_from = Coords::read_and_parse();
+            if (Mask::check(cell_from, Mask::FRONTLINE)) break;
 
-    Serial.print(buf[0]);
-    Serial.print(' ');
-    Serial.println(buf[1]);
+            mserial_pln("Not a valid choice, please try again");
+        }
+        Game::analyze_input(cell_from);
+        Target::print();
 
-    Serial.find('\0');*/
+        cell_to = Coords::read_and_parse();
+        mserial_pln("Choose a cell to move to");
+        if (!Piece::move_is_invalid(Target::get(cell_to))) break;
+
+        mserial_pln("Not a valid choice, you'll be returned to a piece choice");
+    }
+
+    Game::make_move(cell_from, cell_to);
 }

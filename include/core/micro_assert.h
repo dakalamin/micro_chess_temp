@@ -1,11 +1,10 @@
 #pragma once
-#include "core/utils.h"
 #include "core/micro_serial.h"
 
 #ifdef DEBUG
     #if defined(ASSERT_SERIAL) && !defined(SERIAL_SPEED)
-        #pragma message("Warning: SERIAL_SPEED not defined -> ASSERT_SERIAL turned off!")
-        #pragma message("                               (assert is still active though)")
+        #pragma message("Warning: SERIAL_SPEED not defined -> ASSERT_SERIAL will be turned off!")
+        #pragma message("                         (assert functionality is still active though)")
     #endif
 
     #ifdef ASSERT_SERIAL

@@ -5,7 +5,7 @@ namespace Piece
 {
     enum class Move : uint_mch
     {
-        _INVALID   = DFLT_MASK_MCH,
+        _INVALID   = LEFTMOST_BIT,
 
         STEP       = ASCII::encode('S'),
         CAPTURE    = ASCII::encode('A'),

@@ -10,14 +10,14 @@ namespace Mask
         REGICIDES,
         MENACES,
 
-        _arr_size
+        _buffer_size
     };
-    extern mask_mch _arr[_arr_size];
+    extern mask_mch _buffer[_buffer_size];
     extern bool _king_is_hurt;
 
 
     inline mask_mch& get(Index mask_index)
-        { return _arr[mask_index]; }
+        { return _buffer[mask_index]; }
     inline bool check(coord_mch cell, Index mask_index)
         { return (get(mask_index) >> cell) & 1; };
 
