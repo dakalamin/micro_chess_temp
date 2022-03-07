@@ -1,4 +1,3 @@
-#include "core/micro_assert.h"
 #include "piece.h"
 
 #include "target.h"
@@ -47,7 +46,7 @@ namespace Piece
 
             case Move::CASTLING:
                 _make_puremove(board_index, cell_from, cell_to, Move::STEP);
-                _make_puremove(board_index, _get_castling((cell_from > cell_to) ? R : L, is_white), (cell_from + cell_to)/2, Move::STEP);
+                _make_puremove(board_index, _get_castling((cell_from > cell_to) ? L : R, is_white), (cell_from + cell_to)/2, Move::STEP);
                 break;
 
             case Move::EN_PASSANT:
