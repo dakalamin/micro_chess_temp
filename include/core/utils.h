@@ -26,8 +26,8 @@ using count_mch = uint16_t;  // integer counters type
 
 namespace Board
 {
-    #define _MIN_SIDE  6
-    #define _MAX_SIDE  26  // number of letters in english alphabet
+    #define _MIN_SIDE 6
+    #define _MAX_SIDE 26  // number of letters in english alphabet
 
     #ifdef BOARD_SIDE
         #if defined(BOARD_WIDTH) || defined(BOARD_HEIGHT)
@@ -40,19 +40,22 @@ namespace Board
 
         #define BOARD_WIDTH  BOARD_SIDE
         #define BOARD_HEIGHT BOARD_SIDE
+        
     #elif defined(BOARD_WIDTH) && defined(BOARD_HEIGHT)
         #if   BOARD_WIDTH  < _MIN_SIDE
-            #error BOARD_WIDTH is too small! Must be in interval between 6 and 26
+            #error BOARD_WIDTH is too small!  Must be in interval between 6 and 26
         #elif BOARD_WIDTH  > _MAX_SIDE
-            #error BOARD_WIDTH is too big! Must be in interval between 6 and 26
+            #error BOARD_WIDTH is too big!    Must be in interval between 6 and 26
         #elif BOARD_HEIGHT < _MIN_SIDE
             #error BOARD_HEIGHT is too small! Must be in interval between 6 and 26
         #elif BOARD_HEIGHT > _MAX_SIDE
-            #error BOARD_HEIGHT is too big! Must be in interval between 6 and 26
+            #error BOARD_HEIGHT is too big!   Must be in interval between 6 and 26
         #endif
     #else
-        #error Eiter BOARD_SIDE or both BOARD_WIDTH & BOARD_HEIGHT must be defined
+        #error Either BOARD_SIDE or both BOARD_WIDTH & BOARD_HEIGHT must be defined!
     #endif
+
+    const int_mch DEFAULT_SIDE = 8;
 
     const int_mch WIDTH  = BOARD_WIDTH;
     const int_mch HEIGHT = BOARD_HEIGHT;
@@ -72,12 +75,11 @@ namespace Board
 const uint_mch LEFTMOST_BIT = INT8_MAX + 1;
 namespace ASCII
 {
-    const char NULLCHAR = '\0';
     enum Bits : char
     {
-        NOCASE_CHAR = 0b00011111,  // unique ASCII letter bits
-        LOWERCASE   = 0b00100000,  // bit indicating if letter is lowercase
-        MSCB        = 0b01000000   // Most Significant Char Bit
+        NOCASE    = 0b00011111,  // unique ASCII letter bits
+        LOWERCASE = 0b00100000,  // bit indicating if letter is lowercase
+        MSCB      = 0b01000000   // Most Significant Char Bit
     };
 
     inline constexpr char to_lower(const char letter)
@@ -86,7 +88,7 @@ namespace ASCII
         { return letter & (~LOWERCASE); }
 
     inline constexpr auto encode(const auto value)
-        { return (uint_mch)value & NOCASE_CHAR; }
+        { return (uint_mch)value & NOCASE; }
     inline constexpr char decode(const auto value)
         { return encode(value) | MSCB; }
 }
@@ -98,7 +100,7 @@ namespace Math
         int_mch length = 0;
         do {
             integer /= 10; length++;
-        } while(integer != 0);
+        } while (integer != 0);
 
         return length;
     }

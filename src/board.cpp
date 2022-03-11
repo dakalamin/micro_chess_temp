@@ -4,6 +4,7 @@
 #include "mask.h"
 #include "piece.h"
 #include "target.h"
+#include "coords.h"
 
 namespace Board
 {
@@ -56,49 +57,32 @@ namespace Board
     {
         set(board_index, cell, (pce_mch)Piece::Type::EMPTY);
     }
-
-
-    void _print(auto function)
-    {
-        for (coord_mch row = 0; row < SIDE; row++)
-        {
-            mserial_ps("   ");
-            for (coord_mch column = 0; column < SIDE; column++)
-            {
-                char a, b;
-                function(row*SIDE + column, a, b);
-
-                mserial_p(a); mserial_p(b); mserial_p(' ');
-            }
-            mserial_pln(); 
-        }
-        mserial_pln();
-    }
+    
 
     void print_pieces(Index board_index, bool show_shift)
     {
-        _print([board_index, show_shift](coord_mch cell, char& piece_char, char& piece_shift)
+        Coords::print_foreach(
+        [board_index, show_shift](coord_mch cell)
         {
             pce_mch piece = get(board_index, cell);
-            piece_char    = Piece::get_char(piece);
+            mserial_p(Piece::get_char(piece));
 
             if (!show_shift)
-                piece_shift = ASCII::NULLCHAR;
-            else if (Piece::_get_type(piece) == Piece::Type::EMPTY)
-                piece_shift = ' ';
+                return;
+            else if (Piece::_get_type(piece)  == Piece::Type::EMPTY)
+                mserial_p(' ');
             else if (Piece::_get_shift(piece) == Piece::Shift::TRUE)
-                piece_shift = '+';
+                mserial_p('+');
             else
-                piece_shift = '-';
-        });
+                mserial_p('-');
+        },
+        (show_shift) ? 2 : 1, true );
     }
 
     void print_cellnames()
     {
-        _print([](coord_mch cell, char& rank, char& file)
-        {
-            rank = '8' - cell / SIDE;
-            file = 'a' + cell % SIDE;
-        });
+        Coords::print_foreach(
+        [](coord_mch cell) { Coords::print_AN(cell); },
+        Coords::RANK_LENGTH + 1, false );
     }
 }

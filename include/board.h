@@ -16,7 +16,7 @@ namespace Board
     inline bool is_within(coord_mch cell)
         { return (cell >= 0) && (cell < SIZE); }
     inline bool is_within(coord_mch cell_from, coord_mch cell_to)
-        { return is_within(cell_from) && is_within(cell_to) && (abs((cell_from % SIDE) - (cell_to % SIDE)) < 3); }
+        { return is_within(cell_from) && is_within(cell_to) && (abs((cell_from % WIDTH) - (cell_to % WIDTH)) < 3); }
 
     inline pce_mch* _get_arr(Index board_index)
         { return _buffer[board_index]; }
@@ -29,9 +29,6 @@ namespace Board
     void empty(Index board_index, coord_mch cell);
     inline void set(Index board_index, coord_mch cell, pce_mch piece)
         { get(board_index, cell) = piece; }
-
-
-    void _print(auto function);
 
     void print_pieces(Index board_index, bool show_shift=false);
     void print_cellnames();

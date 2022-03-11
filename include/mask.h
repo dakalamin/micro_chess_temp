@@ -14,7 +14,7 @@ namespace Mask
     };
     extern mask_mch _buffer[_buffer_size];
     extern bool _king_is_hurt;
-
+    
 
     inline mask_mch& get(Index mask_index)
         { return _buffer[mask_index]; }

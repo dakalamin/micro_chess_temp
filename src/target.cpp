@@ -1,5 +1,6 @@
 #include "target.h"
 #include "piece.h"
+#include "coords.h"
 
 namespace Target
 {
@@ -22,15 +23,8 @@ namespace Target
 
     void print()
     {
-        for (coord_mch row = 0; row < Board::SIDE; row++)
-        {
-            mserial_ps("   ");
-            for (coord_mch column = 0; column < Board::SIDE; column++)
-            {
-                mserial_p(Piece::move2char(get(row*Board::SIDE + column)));
-                mserial_p(' ');
-            }
-            mserial_pln(' ');
-        }
+        Coords::print_foreach(
+        [](coord_mch cell) { mserial_p(Piece::convert_move2char(get(cell), true)); },
+        1, true);
     }
 }

@@ -9,7 +9,7 @@ namespace Piece
 {
     enum class Prop : pce_mch
     {
-        TYPE  = (pce_mch)ASCII::Bits::NOCASE_CHAR,
+        TYPE  = (pce_mch)ASCII::Bits::NOCASE,
         COLOR = (pce_mch)ASCII::Bits::LOWERCASE,
         SHIFT = COLOR << 1,
 
@@ -52,7 +52,7 @@ namespace Piece
     enum Dir: int_mch
     {
         R   = 1,
-        D   = Board::SIDE,
+        D   = Board::WIDTH,
         L   = -R,
         U   = -D,
         DR  = D+R,  UL  = -DR,
@@ -93,7 +93,7 @@ namespace Piece
     inline coord_mch _get_enpassant(coord_mch cell, bool is_white)
         { return cell + (is_white) ? D : U; }
     inline coord_mch _get_castling(Dir ray, bool is_white)
-        { return (Board::SIDE-1) * (ray == R) + (Board::SIZE-Board::SIDE) * is_white; }
+        { return (Board::WIDTH-1) * (ray == R) + (Board::SIZE-Board::WIDTH) * is_white; }
 
     void _make_puremove(Board::Index board_index, coord_mch cell_from, coord_mch cell_to, Move move, Type prom_type=Type::EMPTY);
 
