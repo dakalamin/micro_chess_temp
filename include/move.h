@@ -3,7 +3,7 @@
 
 namespace Piece
 {
-    const char INVALID_CHAR = 'o';
+    const char INVALID_CHAR = '.';
     enum class Move : uint_mch
     {
         _INVALID   = LEFTMOST_BIT,

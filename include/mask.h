@@ -1,5 +1,6 @@
 #pragma once
 #include "core/utils.h"
+#include "coords.h"
 
 namespace Mask
 {
@@ -26,5 +27,14 @@ namespace Mask
     inline void reset(Index mask_index)
         { get(mask_index) = 0; }
 
-    void print(Index mask_index);
+#ifdef SERIAL_SPEED
+    inline void print(Index mask_index)
+    {
+        Coords::print_foreach(
+        [mask_index](coord_mch cell) { mserial_p(check(cell, mask_index), BIN); },
+        1, true);
+    }
+#else
+    inline void print(Index mask_index) { }
+#endif
 }

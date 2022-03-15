@@ -4,6 +4,7 @@
 #ifdef SERIAL_SPEED
     #define mserial_begin()           { Serial.begin(SERIAL_SPEED); Serial.setTimeout(1); }
     #define mserial_end()             Serial.end()
+    #define mserial_available()       Serial.available()
     #define mserial_find(x)           Serial.find(x)
     #define mserial_flush()           Serial.flush()
     #define mserial_p(x, ...)         Serial.print(x, ##__VA_ARGS__)
@@ -16,7 +17,8 @@
 #else
     #define mserial_begin()           ((void)0)
     #define mserial_end()             ((void)0)
-    #define mserial_find(...)         ((void)0)
+    #define mserial_available()       false
+    #define mserial_find(...)         true
     #define mserial_flush()           ((void)0)
     #define mserial_p(x, ...)         ((void)0)
     #define mserial_pln(x, ...)       ((void)0)

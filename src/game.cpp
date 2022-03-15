@@ -26,6 +26,7 @@ namespace Game
     }
 
 
+#ifdef SERIAL_SPEED
     void print_state()
     {
         if (has_ended())
@@ -49,7 +50,6 @@ namespace Game
 
         if (has_ended() && current_state != State::CHECKMATE)
             mserial_plns("Nobody wins!");
-
     }
 
     void print_side()
@@ -57,6 +57,11 @@ namespace Game
         Piece::print_color(current_side);
         mserial_plns(" are playing now\n");
     }
+
+#else
+    void print_state() { }
+    void print_side() { }
+#endif
 
 
     void preanalyze()

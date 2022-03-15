@@ -3,6 +3,7 @@
 
 #include "move.h"
 #include "board.h"
+#include "coords.h"
 
 namespace Target
 {
@@ -16,5 +17,15 @@ namespace Target
 
     bool is_empty();
     void reset();
-    void print();
+
+#ifdef SERIAL_SPEED
+    inline void print()
+    {
+        Coords::print_foreach(
+        [](coord_mch cell) { mserial_p(Piece::convert_move2char(get(cell), true)); },
+        1, true);
+    }
+#else
+    inline void print() { }
+#endif
 }

@@ -15,18 +15,18 @@
 
 #define SIZEOF_ARRAY_MCH(x)  (sizeof((x))/sizeof((x)[0]))
 
-using int_mch   = int8_t;    // general use signed 8-bit integer
-using uint_mch  = uint8_t;   // general use unsigned 8-bit integer
+using int_mch   = int8_t;    //* general use signed 8-bit integer
+using uint_mch  = uint8_t;   //* general use unsigned 8-bit integer
 
-using pce_mch   = uint_mch;  // piece describing type (like individual pieces themselves or their props)
-using mask_mch  = uint64_t;  // whole board describing type (like i/o masks)
-using coord_mch = int_mch;   // board coordinate values
-using count_mch = uint16_t;  // integer counters type
+using pce_mch   = uint_mch;  //* piece describing type (like individual pieces themselves or their props)
+using mask_mch  = uint64_t;  //* whole board describing type (like i/o masks)
+using coord_mch = int_mch;   //* board coordinate values
+using count_mch = uint16_t;  //* integer counters type
 
 
 namespace Board
 {
-    #define _MIN_SIDE 6
+    #define _MIN_SIDE 6   //! now is limited by Board::is_within(...) limitations
     #define _MAX_SIDE 26  // number of letters in english alphabet
 
     #ifdef BOARD_SIDE
@@ -35,7 +35,7 @@ namespace Board
         #elif BOARD_SIDE < _MIN_SIDE
             #error BOARD_SIDE is too small! Must be in interval between 6 and 26
         #elif BOARD_SIDE > _MAX_SIDE
-            #error BOARD_SIDE is too big! Must be in interval between 6 and 26
+            #error BOARD_SIDE is too big!   Must be in interval between 6 and 26
         #endif
 
         #define BOARD_WIDTH  BOARD_SIDE
@@ -55,11 +55,13 @@ namespace Board
         #error Either BOARD_SIDE or both BOARD_WIDTH & BOARD_HEIGHT must be defined!
     #endif
 
-    const int_mch DEFAULT_SIDE = 8;
-
     const int_mch WIDTH  = BOARD_WIDTH;
     const int_mch HEIGHT = BOARD_HEIGHT;
     const coord_mch SIZE = WIDTH*HEIGHT;
+
+    const int_mch DEFAULT_SIDE      = 8;
+    const bool    WIDTH_IS_DEFAULT  = (WIDTH  == DEFAULT_SIDE);
+    const bool    HEIGHT_IS_DEFAULT = (HEIGHT == DEFAULT_SIDE);
 
     #undef _MIN_SIDE
     #undef _MAX_SIDE

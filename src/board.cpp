@@ -58,7 +58,8 @@ namespace Board
         set(board_index, cell, (pce_mch)Piece::Type::EMPTY);
     }
     
-
+    
+#ifdef SERIAL_SPEED
     void print_pieces(Index board_index, bool show_shift)
     {
         Coords::print_foreach(
@@ -67,14 +68,8 @@ namespace Board
             pce_mch piece = get(board_index, cell);
             mserial_p(Piece::get_char(piece));
 
-            if (!show_shift)
-                return;
-            else if (Piece::_get_type(piece)  == Piece::Type::EMPTY)
-                mserial_p(' ');
-            else if (Piece::_get_shift(piece) == Piece::Shift::TRUE)
-                mserial_p('+');
-            else
-                mserial_p('-');
+            if (!show_shift) return;
+            mserial_p(Piece::is_empty(piece) ? ' ' : (Piece::is_shifted(piece) ? '+' : '-'));
         },
         (show_shift) ? 2 : 1, true );
     }
@@ -85,4 +80,9 @@ namespace Board
         [](coord_mch cell) { Coords::print_AN(cell); },
         Coords::RANK_LENGTH + 1, false );
     }
+
+#else
+    void print_pieces(Index board_index, bool show_shift) { }
+    void print_cellnames() { }
+#endif
 }
