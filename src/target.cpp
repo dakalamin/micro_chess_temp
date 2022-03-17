@@ -1,5 +1,4 @@
 #include "target.h"
-#include "piece.h"
 
 namespace Target
 {
@@ -17,6 +16,6 @@ namespace Target
     void reset()
     {
         for (coord_mch cell = 0; cell < Board::SIZE; cell++)
-            _set(cell, Piece::Move::NONE);
+            set(cell, Piece::Move::NONE);
     }
 }

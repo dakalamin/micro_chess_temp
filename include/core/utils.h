@@ -1,15 +1,8 @@
 #pragma once
 
-#if defined(DEBUG)
-    #if defined(NDEBUG)
-        #error DEBUG and NDEBUG defined simultaneously!
-    #endif
-#elif !defined(NDEBUG)
-    #define NDEBUG
-#endif
-
 #include <stdint.h>
 #include <Arduino.h>
+#include "core/debug_define.h"
 #include "core/micro_serial.h"
 #include "core/micro_assert.h"
 
@@ -59,9 +52,9 @@ namespace Board
     const int_mch HEIGHT = BOARD_HEIGHT;
     const coord_mch SIZE = WIDTH*HEIGHT;
 
-    const int_mch DEFAULT_SIDE      = 8;
-    const bool    WIDTH_IS_DEFAULT  = (WIDTH  == DEFAULT_SIDE);
-    const bool    HEIGHT_IS_DEFAULT = (HEIGHT == DEFAULT_SIDE);
+    const int_mch DEFAULT_SIDE   = 8;
+    const bool WIDTH_IS_DEFAULT  = (WIDTH  == DEFAULT_SIDE);
+    const bool HEIGHT_IS_DEFAULT = (HEIGHT == DEFAULT_SIDE);
 
     #undef _MIN_SIDE
     #undef _MAX_SIDE
@@ -74,7 +67,7 @@ namespace Board
     #endif
 }
 
-const uint_mch LEFTMOST_BIT = INT8_MAX + 1;
+const uint_mch LEFTMOST_BIT = 0b10000000;
 namespace ASCII
 {
     enum Bits : char
@@ -84,15 +77,11 @@ namespace ASCII
         MSCB      = 0b01000000   // Most Significant Char Bit
     };
 
-    inline constexpr char to_lower(const char letter)
-        { return letter | LOWERCASE; }
-    inline constexpr char to_upper(const char letter)
-        { return letter & (~LOWERCASE); }
+    inline constexpr char to_lower(const char letter) { return letter | LOWERCASE;    }
+    inline constexpr char to_upper(const char letter) { return letter & (~LOWERCASE); }
 
-    inline constexpr auto encode(const auto value)
-        { return (uint_mch)value & NOCASE; }
-    inline constexpr char decode(const auto value)
-        { return encode(value) | MSCB; }
+    inline constexpr auto encode(const auto value) { return (uint_mch)value & NOCASE; }
+    inline constexpr char decode(const auto value) { return encode(value) | MSCB;     }
 }
 
 namespace Math

@@ -1,4 +1,5 @@
 #pragma once
+#include "core/debug_define.h"
 #include "core/micro_serial.h"
 
 #ifdef DEBUG

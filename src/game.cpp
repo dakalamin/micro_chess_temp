@@ -6,7 +6,6 @@ namespace Game
     State        current_state;
 
     count_mch    turns_counter;
-
     Piece::Move  last_move;
     coord_mch    last_cell;
 
@@ -29,6 +28,9 @@ namespace Game
 #ifdef SERIAL_SPEED
     void print_state()
     {
+        mserial_pln((has_ended()?));
+
+
         if (has_ended())
             mserial_plns("Game ends at ");
         else if (current_state == State::CHECK)
@@ -39,13 +41,12 @@ namespace Game
         {
             case State::CHECKMATE:
                 mserial_ps("CHECKMATE\nCongratulations ");
-                Piece::print_color(Piece::opposite_color(current_side));
-                mserial_plns(" side, you win!");
-                break;
+                Piece::print_color(Piece::reverse_color(current_side));
+                mserial_plns(" side, you win!");  break;
             case State::STALEMATE:
                 mserial_plns("STALEMATE");  break;
             case State::DRAW:
-                mserial_plns("DRAW");       break;
+                mserial_plns("DRAW");  break;
         }
 
         if (has_ended() && current_state != State::CHECKMATE)

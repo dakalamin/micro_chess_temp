@@ -1,15 +1,17 @@
 #include "core/utils.h"
 
+#include "piece.h"
 #include "board.h"
 #include "game.h"
 #include "mask.h"
 #include "coords.h"
 
-char buf[2];
-
 void setup()
 {
     mserial_begin();
+
+    mserial_pln(65/8);
+
     Game::reset();
 }
 

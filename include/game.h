@@ -3,7 +3,6 @@
 
 #include "piece.h"
 #include "move.h"
-#include "target.h"
 #include "board.h"
 
 namespace Game
@@ -34,16 +33,15 @@ namespace Game
     inline bool has_ended()
         { return (uint_mch)current_state & (uint_mch)State::_END; }
     inline void switch_sides()
-        { current_side = Piece::opposite_color(current_side); }
+        { current_side = Piece::reverse_color(current_side); }
     void reset(Piece::Color start_side=START_SIDE);
 
     void print_side();   // can be used independently for debugging
     void print_state();  // can be used independently for debugging
 
-    inline void analyze_input(coord_mch cell)
-        { Piece::calculate(Board::MAJOR, cell); }
+    inline void analyze_input(coord_mch cell) { Piece::calculate(Board::MAJOR, cell); }
         
     void preanalyze();
     void _make_move(coord_mch cell_from, coord_mch cell_to, Piece::Move move, Piece::Type prom_type=Piece::Type::EMPTY);
-    void make_move(coord_mch cell_from, coord_mch cell_to, Piece::Type prom_type=Piece::Type::EMPTY);
+    void  make_move(coord_mch cell_from, coord_mch cell_to,                   Piece::Type prom_type=Piece::Type::EMPTY);
 }

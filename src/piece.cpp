@@ -15,11 +15,30 @@ namespace Piece
 
     bool _char_is_valid(char letter)
     {
-        bool piece_is_valid = (letter == EMPTY_CHAR);
+        if (letter == EMPTY_CHAR) return true;
         for (char valid_char : VALID_CHARS)
-            piece_is_valid += (ASCII::to_upper(letter) == ASCII::to_upper(valid_char));
+            if (ASCII::to_upper(letter) == valid_char) return true;
 
-        return piece_is_valid;
+        return false;
+    }
+
+    bool _promtype_is_valid(Type type)
+    {
+        for (Type prom_type : PROM_TYPES)
+            if (type == prom_type) return true;
+                
+        return false;
+    }
+
+
+    pce_mch make(char letter, bool shift)
+    {
+        assert_val_mch(_char_is_valid(letter), letter);
+
+        if (letter == EMPTY_CHAR)
+            return (pce_mch)Type::EMPTY;
+        else
+            return make(_get_type(letter), reverse_color(_get_color(letter)), shift);
     }
 
 
@@ -30,7 +49,7 @@ namespace Piece
 
         const pce_mch piece_from    = Board::get(board_index, cell_from);
         const Color   color_from    = _get_color(piece_from);
-        const bool    from_is_white = _is_white(color_from);
+        const bool    is_white_from = _is_white(color_from);
 
         switch (move)
         {
@@ -39,13 +58,13 @@ namespace Piece
             case Move::STEP:        [[fallthrough]];
             case Move::DOUBLEPAWN:  [[fallthrough]];
             case Move::CAPTURE:
-                Board::set(board_index, cell_to, make(_get_type(piece_from), color_from, Shift::TRUE));
+                Board::set(board_index, cell_to, make(_get_type(piece_from), color_from));
                 Board::empty(board_index, cell_from);
                 break;
 
             case Move::CASTLING:
                 _make_puremove(board_index, cell_from, cell_to, Move::STEP);
-                _make_puremove(board_index, _get_castling((cell_from > cell_to) ? L : R, from_is_white), (cell_from + cell_to)/2, Move::STEP);
+                _make_puremove(board_index, _get_castling((cell_from > cell_to) ? L : R, is_white_from), (cell_from + cell_to)/2, Move::STEP);
                 break;
 
             case Move::EN_PASSANT:
@@ -54,17 +73,9 @@ namespace Piece
                 break;
 
             case Move::PROMOTION:
-                #ifdef DEBUG
-                {
-                    bool promtype_is_valid = false;
-                    for (Type type : PROM_TYPES)
-                        promtype_is_valid += (prom_type == type);
+                assert_val_mch(_promtype_is_valid(type), (pce_mch)prom_type, DEC);
 
-                    assert_val_mch(promtype_is_valid, (pce_mch)prom_type, DEC);
-                }
-                #endif
-
-                Board::set(board_index, cell_to, make(prom_type, color_from, Shift::TRUE));
+                Board::set(board_index, cell_to, make(prom_type, color_from));
                 Board::empty(board_index, cell_from);
                 break;
 
@@ -73,24 +84,20 @@ namespace Piece
         }
     }
 
-    void _validate(coord_mch cell, coord_mch new_cell, Move move)
+    void _validate(coord_mch cell, coord_mch new_cell, Move move, bool full)
     {
+        if (full) _make_puremove(Board::MINOR, cell, new_cell, move);
+
         for (coord_mch sub_cell = 0; sub_cell < Board::SIZE; sub_cell++)
             Piece::calculate(Board::MINOR, sub_cell);
 
-        if (Mask::_king_is_hurt)
-            Target::_set(new_cell, Move::BLOCKED);
+        if (Board::king_is_hurt)
+            Target::set(new_cell, Move::BLOCKED);
         else
         {
-            Target::_set(new_cell, move);
+            Target::set(new_cell, move);
             Mask::set(cell, Mask::FRONTLINE);
         }
-    }
-
-    void _full_validate(coord_mch cell, coord_mch new_cell, Move move)
-    {
-        _make_puremove(Board::MINOR, cell, new_cell, move);
-        _validate(cell, new_cell, move);
     }
 
     // magic happens here
@@ -106,33 +113,6 @@ namespace Piece
 
         // EMPTY cells are always ignored and only opponent's pieces are calculated on MINOR
         if (_is_empty(type) || (board_index == Board::MINOR && Game::is_current_side(color))) return;
-        // a and b - start and end indices
-        // for rays in < Piece::RAYS[] > to loop through
-        int_mch a{0}, b{0};  bool is_sliding;
-        switch (type)
-        { 
-            case Type::QUEEN:
-                is_sliding = true;
-                a = 0;  b = RAYS_ROW*2;
-                break;
-            case Type::ROOK:
-                is_sliding = true;
-                a = 0;  b = RAYS_ROW;                
-                break;
-            case Type::BISHOP:
-                is_sliding = true;
-                a = RAYS_ROW;  b = RAYS_ROW*2;
-                break;
-            case Type::KNIGHT:
-                is_sliding = false;
-                a = RAYS_ROW*2;  b = RAYS_ROW*4;
-                break;
-            case Type::KING:
-                is_sliding = false;
-                a = 0;  b = RAYS_ROW*2;
-                break;
-        }
-
 
         // PAWNs are analyzed separately because of their unique behaviour
         if (type == Type::PAWN)
@@ -194,15 +174,16 @@ namespace Piece
             Board::reset(Board::MINOR);
             return _full_validate(cell, new_cell, Move::DOUBLEPAWN);
         }
+
         // analyzing KING's CASTLING steps
-        else if (piece == make(Type::KING, Game::current_side, Shift::FALSE))
+        if (piece == make(Type::KING, Game::current_side, false))
         {
             const Dir castling_rays[] = {R, L};
             for (Dir ray : castling_rays)
             {
                 // CASTLING is only possible if ROOK to swap with hasn't moved from starting position 
                 const coord_mch rook_cell = _get_castling(ray, piece_is_white);
-                if (Board::get(board_index, rook_cell) != make(Type::ROOK, Game::current_side, Shift::FALSE))
+                if (Board::get(board_index, rook_cell) != make(Type::ROOK, Game::current_side, false))
                     continue;
 
                 coord_mch new_cell = cell + ray;
@@ -224,15 +205,25 @@ namespace Piece
             }
         }
 
+        // a and b - start and end indices
+        // for rays in < Piece::RAYS[] > to loop through
+        int_mch a = 0, b = 0;
+        switch (type)
+        { 
+            case Type::QUEEN:   a = 0; b = 2;  break;
+            case Type::ROOK:    a = 0; b = 1;  break;
+            case Type::BISHOP:  a = 1; b = 2;  break;
+            case Type::KNIGHT:  a = 2; b = 4;  break;
+            case Type::KING:    a = 0; b = 2;  break;
+        }
         // loop over all different directions suitable for particular piece type
-        for (int_mch ray_index = a; ray_index < b; ray_index++)
+        for (int_mch ray_index = a*RAYS_ROW; ray_index < b*RAYS_ROW; ray_index++)
         {
             Dir ray = RAYS[ray_index];
             coord_mch new_cell = cell;
 
-            while (Board::is_within(new_cell, new_cell+ray))
+            for (coord_mch new_cell = cell+ray; Board::is_within(new_cell, new_cell-ray); new_cell += ray;)
             {
-                new_cell += ray;
                 const pce_mch new_piece = Board::get(board_index, new_cell);
                 const Type new_type     = _get_type(new_piece);
                 const bool new_is_empty = _is_empty(new_type);
@@ -241,7 +232,7 @@ namespace Piece
                 if (!new_is_empty && _get_color(new_piece) == color)
                     break;
 
-                if (color == Game::current_side)
+                if (Game::is_current_side(color))
                 {
                     // simulate this move on MINOR
                     Board::reset(Board::MINOR);
@@ -252,7 +243,7 @@ namespace Piece
 
                 // no reason to check more than one step in any direction
                 // if piece is of not-sliding type (e.g. KNIGHT)
-                if (!(is_sliding && new_is_empty))
+                if (!(new_is_empty && is_sliding(piece)))
                     break;
             }
         }

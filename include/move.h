@@ -23,6 +23,5 @@ namespace Piece
         { return (uint_mch)move & (uint_mch)Move::_INVALID; }
     inline char convert_move2char(Move move, bool suppress_invalid=false)
         { return (suppress_invalid && move_is_invalid(move)) ?
-                  INVALID_CHAR : ASCII::to_upper(ASCII::decode(move));
-        }
+                  INVALID_CHAR : ASCII::to_upper(ASCII::decode(move)); }
 }

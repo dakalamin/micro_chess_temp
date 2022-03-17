@@ -12,6 +12,8 @@ namespace Board
         _buffer_size
     };
     extern pce_mch _buffer[Index::_buffer_size][SIZE];
+    extern bool king_is_hurt;
+
     
     inline bool is_within(coord_mch cell)
         { return (cell >= 0) && (cell < SIZE); }

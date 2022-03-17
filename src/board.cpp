@@ -1,14 +1,12 @@
 #include "board.h"
 
-#include "game.h"
-#include "mask.h"
 #include "piece.h"
-#include "target.h"
 #include "coords.h"
 
 namespace Board
 {
     pce_mch _buffer[Index::_buffer_size][SIZE];
+    bool king_is_hurt;
 
 
     void fill(Index board_index, const char contents[])
@@ -17,23 +15,9 @@ namespace Board
 
         for (coord_mch cell = 0; cell < SIZE; cell++)
         {
-            char new_piece = contents[cell];
-            assert_val_mch(Piece::_char_is_valid(new_piece), contents);
-
-            pce_mch      piece = (pce_mch)Piece::Type::EMPTY;;
-            Piece::Shift shift = Piece::Shift::FALSE;
-
-            if (new_piece != Piece::EMPTY_CHAR)
-            {
-                piece  = (pce_mch)Piece::_get_type((pce_mch)new_piece);
-                piece |= ((pce_mch)Piece::_get_color((pce_mch)new_piece) ^ (pce_mch)Piece::Color::WHITE);
-
-                if (new_piece != BRD_DEFAULT[cell])
-                    shift = Piece::Shift::TRUE;
-            }
-
-            set(board_index, cell, piece|(pce_mch)shift);
-        }
+            char letter = contents[cell];
+            set(board_index, cell, Piece::make(letter, letter == BRD_DEFAULT[cell]));
+        }       
     }
 
     void reset(Index board_index)
@@ -41,14 +25,13 @@ namespace Board
         switch (board_index)
         {
             case MAJOR:
-                fill(MAJOR, BRD_DEFAULT);
-                return;
+                return fill(MAJOR, BRD_DEFAULT);
 
             case MINOR:
                 for (coord_mch cell = 0; cell < SIZE; cell++)
                     set(MINOR, cell, get(MAJOR, cell));
 
-                Mask::_king_is_hurt = false;
+                king_is_hurt = false;
                 return;
         }
     }
@@ -59,30 +42,28 @@ namespace Board
     }
     
     
-#ifdef SERIAL_SPEED
     void print_pieces(Index board_index, bool show_shift)
     {
-        Coords::print_foreach(
-        [board_index, show_shift](coord_mch cell)
-        {
-            pce_mch piece = get(board_index, cell);
-            mserial_p(Piece::get_char(piece));
+        #ifdef SERIAL_SPEED
+            Coords::print_foreach(
+            [board_index, show_shift](coord_mch cell)
+            {
+                pce_mch piece = get(board_index, cell);
+                mserial_p(Piece::get_char(piece));
 
-            if (!show_shift) return;
-            mserial_p(Piece::is_empty(piece) ? ' ' : (Piece::is_shifted(piece) ? '+' : '-'));
-        },
-        (show_shift) ? 2 : 1, true );
+                if (!show_shift) return;
+                mserial_p(Piece::is_empty(piece) ? ' ' : (Piece::is_shifted(piece) ? '+' : '-'));
+            },
+            (show_shift) ? 2 : 1, true );
+        #endif
     }
 
     void print_cellnames()
     {
-        Coords::print_foreach(
-        [](coord_mch cell) { Coords::print_AN(cell); },
-        Coords::RANK_LENGTH + 1, false );
+        #ifdef SERIAL_SPEED
+            Coords::print_foreach(
+            [](coord_mch cell) { Coords::print_AN(cell); },
+            Coords::RANK_LENGTH + 1, false );
+        #endif
     }
-
-#else
-    void print_pieces(Index board_index, bool show_shift) { }
-    void print_cellnames() { }
-#endif
 }
