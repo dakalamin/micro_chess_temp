@@ -188,7 +188,7 @@ namespace Piece
             // PAWNs can also make a double forwards step if it hasn't moved from starting position
             new_cell += ray;
             pce_mch new_piece = Board::get(board_index, new_cell);
-            if (!( Board::is_within(cell, new_cell) && is_empty(new_piece) && !is_shifted(new_piece) ))
+            if (!( Board::is_within(cell, new_cell) && is_empty(new_piece) && !is_shifted(piece) ))
                 return;
 
             Board::reset(Board::MINOR);

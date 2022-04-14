@@ -96,7 +96,7 @@ namespace Piece
         { Mask::set(cell, (Mask::_king_is_hurt = (board_index == Board::MINOR)) ? Mask::MENACES : Mask::REGICIDES); }
 
     inline coord_mch _get_enpassant(coord_mch cell, bool is_white)
-        { return cell + (is_white) ? D : U; }
+        { return cell + ((is_white) ? D : U); }
     inline coord_mch _get_castling(Dir ray, bool is_white)
         { return (Board::WIDTH-1) * (ray == R) + (Board::SIZE-Board::WIDTH) * is_white; }
 
